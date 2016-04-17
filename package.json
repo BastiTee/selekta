@@ -1,0 +1,16 @@
+{
+  "name": "selectron",
+  "version": "0.1.0",
+  "author": "Basti Tee",
+  "keywords": [],
+  "style": "selectron/style.css",
+  "main": "selectron/index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "license": "MIT",
+  "dependencies": {
+    "electron-prebuilt": "^0.36.0",
+    "walk": "^2.3.9"
+  }
+}
