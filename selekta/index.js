@@ -4,11 +4,11 @@ const Menu = electron.Menu;
 const Tray = electron.Tray;
 const BrowserWindow = electron.BrowserWindow;
 const windowSettings = {
-    frame: true, // no window decoration
     resizable: false,
     fullscreen: false,
     center: true,
-    icon: 'selekta/res/icon.png' // icon
+    frame: true,
+    title: 'selekta'
 };
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -34,7 +34,7 @@ app.on('ready', function() {
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 
     // Open the DevTools.
-    // mainWindow.openDevTools();
+    mainWindow.openDevTools();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function() {

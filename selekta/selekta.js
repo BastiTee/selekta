@@ -2,11 +2,16 @@ var walk = require('walk');
 var imagePaths = [];
 var currImageIdx = 0;
 var currImagePath = '';
+const dialog = require('electron').remote.dialog;
 
 function initBackend() {
 
     registerKeys();
-    obtainFilePaths('./images');
+    var imageDir = dialog.showOpenDialog(
+      { properties: [ 'openFile', 'openDirectory', 'multiSelections' ]});
+
+    console.log(imageDir[0]);
+    obtainFilePaths(imageDir[0]);
 
     function registerKeys() {
         document.body.addEventListener("keydown", keyDown);
@@ -25,7 +30,7 @@ function initBackend() {
         currImageIdx = currImageIdx > 0 ? currImageIdx < imagePaths.length - 1 ?
             currImageIdx : imagePaths.length - 1 : 0;
         currImagePath = imagePaths[currImageIdx];
-        $('#main-image').attr("src", "." + currImagePath);
+        $('#main-image').attr("src", currImagePath);
         console.log(currImageIdx + ' >>> ' + currImagePath);
     }
 
