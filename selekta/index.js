@@ -3,7 +3,13 @@ const app = electron.app;
 const Menu = electron.Menu;
 const Tray = electron.Tray;
 const BrowserWindow = electron.BrowserWindow;
-
+const windowSettings = {
+    frame: true, // no window decoration
+    resizable: false,
+    fullscreen: false,
+    center: true,
+    icon: 'selekta/res/icon.png' // icon
+};
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow = null;
@@ -21,18 +27,9 @@ app.on('window-all-closed', function() {
 // initialization and is ready to create browser windows.
 app.on('ready', function() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({
-        width: 800,
-        height: 500,
-        'min-width': 500,
-        'min-height': 200,
-        'accept-first-mouse': true,
-        'title-bar-style': 'hidden',
-        // frame: false // Later to disable any menus
-        icon: 'selectron/icon.png'
-    });
+    mainWindow = new BrowserWindow(windowSettings);
     mainWindow.setMenu(null);
-    
+
     // and load the index.html of the app.
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 

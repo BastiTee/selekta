@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="lib/jquery-2.2.3.min.js"></script>
+    <script type="text/javascript">
+        if (typeof(require) == "function") {
+            window.$ = window.jQuery = require('./lib/jquery-2.2.3.min.js');
+        }
+    </script>
+    <script type="text/javascript" src="selekta.js"></script>
+</head>
+
+<body onload='initBackend()'>
+    <div id="window">
+        <div id="image-container">
+            <img id="main-image" />
+        </div>
+    </div>
+</body>
+
+</html>
