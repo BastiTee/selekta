@@ -1,12 +1,15 @@
 function initBackend() {
 
-    var walk = require('walk');
+    const c = console;
+    const walk = require('walk');
     const dialog = require('electron').remote.dialog;
+    const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
+    const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+
     var imagePaths = [];
     var currImageIdx = 0;
     var currImagePath = '';
     var helpOpen = false;
-    var supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
 
     registerKeys();
     // setFolder();
@@ -17,42 +20,70 @@ function initBackend() {
 
         function keyDown(event) {
             if (event.which == 39) { // Right arrow key
-                setNextImage(1);
+                setNextImage(currImageIdx + 1);
             } else if (event.which == 37) { // Left arrow key
-                setNextImage(-1);
+                setNextImage(currImageIdx - 1);
             } else if (event.which == 72) { // h key
-                setHelp();
+                toggleHelpWindow();
             } else if (event.which == 27) { // ESC key
                 if (!helpOpen) return;
-                setHelp();
+                toggleHelpWindow();
             } else if (event.which == 79) {
                 setFolder();
-
+            } else if (event.which == 82) { // r key
+                setNextImage(-1);
+            } else if (event.which == 70) { // f key
+                setNextImage(imagePaths.length);
             } else {
-                console.log(event.which + ' not supported.');
+                c.log(event.which + ' not supported.');
             }
         }
 
-        function setHelp() {
-            if (helpOpen) {
-                $('#help-window').hide();
-            } else {
-                $('#help-window').show();
-            }
-            helpOpen = !helpOpen;
-        }
 
-        $('#help-hover').click(setHelp);
-        $('#help-window').click(setHelp);
+        $('#help-hover').click(toggleHelpWindow);
+        $('#help-window').click(toggleHelpWindow);
     }
 
-    function setNextImage(shift) {
-        currImageIdx = currImageIdx + shift
+    $.fn.extend({
+        animateCss: function(animationName, hide) {
+            if (!hide) {
+                $(this).show();
+            }
+            $(this).addClass('animated ' + animationName).one(animationEnd, function() {
+                $(this).removeClass('animated ' + animationName);
+                if (hide) {
+                    $(this).hide();
+                }
+            });
+        }
+    });
+
+    function toggleHelpWindow() {
+
+        if (helpOpen) {
+            $('#help-hover').animateCss('slideInDown', false);
+            $('#help-window').animateCss('slideOutUp', true);
+        } else {
+            $('#help-hover').animateCss('slideOutUp', true);
+            $('#help-window').animateCss('slideInDown', false);
+        }
+        helpOpen = !helpOpen;
+    }
+
+    function setNextImage(newImageIdx) {
+        currImageIdx = newImageIdx;
+        if (currImageIdx < 0) {
+            notify('Reached first image');
+        } else if (currImageIdx >= imagePaths.length) {
+            notify('Reached last image');
+        }
         currImageIdx = currImageIdx > 0 ? currImageIdx < imagePaths.length - 1 ?
             currImageIdx : imagePaths.length - 1 : 0;
+
+
         currImagePath = imagePaths[currImageIdx];
         $('#main-image').attr("src", currImagePath);
-        console.log(currImageIdx + ' >>> ' + currImagePath);
+        c.log(currImageIdx + ' >>> ' + currImagePath);
     }
 
     function setFolder(explicitFolder) {
@@ -64,6 +95,23 @@ function initBackend() {
             imageDir = [explicitFolder];
         }
         obtainFilePaths(imageDir[0]);
+    }
+
+    function notify(message) {
+        $('#notification').text(message);
+        $('#notification-box').show();
+        $('#notification-box').addClass('animated fadeIn').one(
+            animationEnd,
+            function() {
+                $('#notification-box').removeClass('animated fadeIn');
+                setTimeout(function() {
+
+                    $('#notification-box').hide();
+
+                }, 1000);
+            });
+
+
     }
 
     function obtainFilePaths(rootDir) {
