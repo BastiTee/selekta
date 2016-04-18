@@ -1,17 +1,16 @@
-var walk = require('walk');
-var imagePaths = [];
-var currImageIdx = 0;
-var currImagePath = '';
-var helpOpen = false;
-const dialog = require('electron').remote.dialog;
-
 function initBackend() {
 
-    registerKeys();
-    // var imageDir = dialog.showOpenDialog(  { properties: [ 'openFile', 'openDirectory', 'multiSelections' ]});
-    var imageDir = ['C:/development/data/testdaten/sample-images'];
+    var walk = require('walk');
+    const dialog = require('electron').remote.dialog;
+    var imagePaths = [];
+    var currImageIdx = 0;
+    var currImagePath = '';
+    var helpOpen = false;
+    var supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
 
-    obtainFilePaths(imageDir[0]);
+    registerKeys();
+    // setFolder();
+    setFolder('C:/development/data/testdaten/sample-images');
 
     function registerKeys() {
         document.body.addEventListener("keydown", keyDown);
@@ -22,27 +21,29 @@ function initBackend() {
             } else if (event.which == 37) { // Left arrow key
                 setNextImage(-1);
             } else if (event.which == 72) { // h key
-                openHelpMenu();
+                setHelp();
             } else if (event.which == 27) { // ESC key
-                closeHelpMenu();
+                if (!helpOpen) return;
+                setHelp();
+            } else if (event.which == 79) {
+                setFolder();
+
             } else {
                 console.log(event.which + ' not supported.');
             }
         }
 
-        function openHelpMenu() {
-            console.log('open help');
-            $('#help-window').show();
+        function setHelp() {
+            if (helpOpen) {
+                $('#help-window').hide();
+            } else {
+                $('#help-window').show();
+            }
+            helpOpen = !helpOpen;
         }
 
-        function closeHelpMenu() {
-            console.log('close help');
-
-            $('#help-window').hide();
-        }
-
-        $('#help-hover').click(openHelpMenu);
-        $('#help-window').click(closeHelpMenu);
+        $('#help-hover').click(setHelp);
+        $('#help-window').click(setHelp);
     }
 
     function setNextImage(shift) {
@@ -54,12 +55,27 @@ function initBackend() {
         console.log(currImageIdx + ' >>> ' + currImagePath);
     }
 
+    function setFolder(explicitFolder) {
+        if (explicitFolder === undefined) {
+            imageDir = dialog.showOpenDialog({
+                properties: ['openFile', 'openDirectory', 'multiSelections']
+            });
+        } else {
+            imageDir = [explicitFolder];
+        }
+        obtainFilePaths(imageDir[0]);
+    }
+
     function obtainFilePaths(rootDir) {
+        imagePaths = [];
         var walker = walk.walk(rootDir, {
             followLinks: false
         });
+
         walker.on('file', function(root, stat, next) {
-            imagePaths.push(root + '/' + stat.name);
+            if (stat.name.match(supportedFileSuffixes)) {
+                imagePaths.push(root + '/' + stat.name);
+            }
             next();
         });
         walker.on('end', function() {
