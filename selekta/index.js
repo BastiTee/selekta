@@ -4,9 +4,7 @@ const Menu = electron.Menu;
 const Tray = electron.Tray;
 const BrowserWindow = electron.BrowserWindow;
 const windowSettings = {
-    width: 1000,
-    height: 800,
-    resizable: false,
+    resizable: true,
     fullscreen: false,
     center: true,
     frame: true,
@@ -30,13 +28,14 @@ app.on('window-all-closed', function() {
 app.on('ready', function() {
     // Create the browser window.
     mainWindow = new BrowserWindow(windowSettings);
-    // mainWindow.setMenu(null); // disable default menu
+
+    mainWindow.setMenu(null); // disable default menu
 
     // and load the index.html of the app.
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 
     // Open the DevTools.
-    mainWindow.openDevTools();
+    // mainWindow.openDevTools();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function() {

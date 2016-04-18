@@ -6,16 +6,11 @@ body {
     background-color: black;
 }
 #image-container {
-    position: relative;
+    position:relative;
 }
 #main-image {
-    position: absolute;
-    width: 90%;
-    margin: 0 auto;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    position:absolute;
+    width: 100%;
 }
 #help-hover {
     color: white;

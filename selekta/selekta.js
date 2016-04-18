@@ -10,10 +10,10 @@ function initBackend() {
     var currImageIdx = 0;
     var currImagePath = '';
     var helpOpen = false;
+    var windowSize = undefined;
 
     registerKeys();
-    // setFolder();
-    setFolder('C:/development/data/testdaten/sample-images');
+    setFolder();
 
     function registerKeys() {
         document.body.addEventListener("keydown", keyDown);
@@ -35,7 +35,7 @@ function initBackend() {
             } else if (event.which == 70) { // f key
                 setNextImage(imagePaths.length);
             } else {
-                c.log(event.which + ' not supported.');
+                // c.log(event.which + ' not supported.');
             }
         }
 
@@ -80,11 +80,12 @@ function initBackend() {
         currImageIdx = currImageIdx > 0 ? currImageIdx < imagePaths.length - 1 ?
             currImageIdx : imagePaths.length - 1 : 0;
 
-
         currImagePath = imagePaths[currImageIdx];
+
         $('#main-image').attr("src", currImagePath);
-        c.log(currImageIdx + ' >>> ' + currImagePath);
     }
+
+
 
     function setFolder(explicitFolder) {
         if (explicitFolder === undefined) {
