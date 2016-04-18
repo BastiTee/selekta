@@ -3,6 +3,8 @@
 
 <head>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="lib/font-awesome.css">
+<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="lib/jquery-2.2.3.min.js"></script>
     <script type="text/javascript">
         if (typeof(require) == "function") {
@@ -10,12 +12,29 @@
         }
     </script>
     <script type="text/javascript" src="selekta.js"></script>
+
 </head>
 
 <body onload='initBackend()'>
     <div id="window">
         <div id="image-container">
             <img id="main-image" />
+        </div>
+        <div id="help-hover">
+          <i class="fa fa-question-circle-o" aria-hidden="true"></i>
+        </div>
+        <div id="help-window">
+          <b>Help</b><br/>
+          <br />
+          <table>
+          <tr><td>&rarr;</td><td>Next image</td></tr>
+          <tr><td>&larr;</td><td>Previous image</td></tr>
+          <tr><td>h</td><td>Open help</td></tr>
+          <tr><td>ESC</td><td>Close help</td></tr>
+        </table>
+        <br />
+        <p>Click box to close help.</p>
+
         </div>
     </div>
 </body>

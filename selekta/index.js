@@ -4,6 +4,8 @@ const Menu = electron.Menu;
 const Tray = electron.Tray;
 const BrowserWindow = electron.BrowserWindow;
 const windowSettings = {
+    width: 1000,
+    height: 800,
     resizable: false,
     fullscreen: false,
     center: true,
@@ -28,7 +30,7 @@ app.on('window-all-closed', function() {
 app.on('ready', function() {
     // Create the browser window.
     mainWindow = new BrowserWindow(windowSettings);
-    mainWindow.setMenu(null);
+    // mainWindow.setMenu(null); // disable default menu
 
     // and load the index.html of the app.
     mainWindow.loadURL('file://' + __dirname + '/index.html');
