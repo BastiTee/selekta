@@ -2,18 +2,20 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="lib/font-awesome.css">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-    <script type="text/javascript" src="lib/jquery-2.2.3.min.js"></script>
+    <!-- EXTERNAL STYLESHEETS -->
+    <link rel="stylesheet" href="lib/font-awesome/font-awesome.css">
+    <link rel='stylesheet' href='lib/open-sans/open-sans.css'>
+    <link rel="stylesheet" href="lib/animate-css/animate.css">
+    <!-- EXTERNAL LIBRARIES -->
+    <script type="text/javascript" src="lib/jquery/jquery-2.2.3.min.js"></script>
     <script type="text/javascript">
         if (typeof(require) == "function") {
-            window.$ = window.jQuery = require('./lib/jquery-2.2.3.min.js');
+            window.$ = window.jQuery = require('./lib/jquery/jquery-2.2.3.min.js');
         }
     </script>
-    <link rel="stylesheet" href="lib/animate.css">
+    <!-- CORE CSS/JS -->
+    <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="selekta.js"></script>
-
 </head>
 
 <body onload='initBackend()'>
@@ -24,48 +26,15 @@
         <div id="help-hover">
             <i class="fa fa-question-circle-o" aria-hidden="true"></i>
         </div>
-        <div id="help-window">
-            <b>Help</b>
-            <br />
-            <table>
-                <tr>
-                    <td>&rarr;</td>
-                    <td>Next image</td>
-                </tr>
-                <tr>
-                    <td>&larr;</td>
-                    <td>Previous image</td>
-                </tr>
-
-                <tr>
-                    <td>R</td>
-                    <td>Rewind to first image</td>
-                </tr>
-                <tr>
-                    <td>F</td>
-                    <td>Forward to last image</td>
-                </tr>
-                <tr>
-                    <td>O</td>
-                    <td>Select new image folder</td>
-                </tr>
-                <tr>
-                    <td>H</td>
-                    <td>Toggle help</td>
-                </tr>
-                <tr>
-                    <td>ESC</td>
-                    <td>Close help</td>
-                </tr>
-            </table>
-            <br />
-            <p>Click box to close help.</p>
-
-        </div>
+        <div id="help-window"></div>
         <div id="notification-box">
-            <p id="notification">note</p>
+            <p id="notification"></p>
         </div>
     </div>
 </body>
-
+<script>
+    $(function() {
+        $("#help-window").load("help.html");
+    });
+</script>
 </html>
