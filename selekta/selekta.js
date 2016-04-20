@@ -1,5 +1,5 @@
 const ipc = require('electron').ipcRenderer;
-var imgTool = require('image-size');
+const imgTool = require('image-size');
 const c = console;
 const $ = require('jQuery');
 const walk = require('walk');
@@ -9,16 +9,15 @@ const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimati
 
 var selekta = function initBackend() {
 
-    function init(){
-      var imagePaths = [];
-      var currImageIdx = 0;
-      var currImagePath = '';
-      var helpOpen = false;
-      var windowSize = undefined;
+    function init() {
+        var imagePaths = [];
+        var currImageIdx = 0;
+        var currImagePath = '';
+        var helpOpen = false;
+        var windowSize = undefined;
 
-      registerKeys();
+        registerKeys();
     }
-
 
     // register size
     ipc.on('current-size', function(event, message) {
@@ -89,6 +88,7 @@ var selekta = function initBackend() {
     }
 
     function setNextImage(newImageIdx) {
+
         currImageIdx = newImageIdx;
         if (currImageIdx < 0) {
             notify('Reached first image');
@@ -100,8 +100,8 @@ var selekta = function initBackend() {
 
         currImagePath = imagePaths[currImageIdx];
 
-        imgTool(currImagePath, function(e, dimensions){
-          getAspectRatio(dimensions.width, dimensions.height);
+        imgTool(currImagePath, function(e, dimensions) {
+            getAspectRatio(dimensions.width, dimensions.height);
         });
 
         $('#main-image').attr("src", currImagePath);
@@ -111,22 +111,22 @@ var selekta = function initBackend() {
 
     }
 
-    function getAspectRatio(picHeight, picWidth){
+    function getAspectRatio(picHeight, picWidth) {
         var picRatio = picWidth / picHeight;
         var screenRatio = windowSize[0] / windowSize[1];
 
-        if(picRatio < screenRatio){
-          $('#main-image').css({
-            width: '100%',
-            height: 'auto',
-            opacity: '1'
-          });
-        } else{
-          $('#main-image').css({
-            width: 'auto',
-            height: '100%',
-            opacity: '1'
-          });
+        if (picRatio < screenRatio) {
+            $('#main-image').css({
+                width: '100%',
+                height: 'auto',
+                opacity: '1'
+            });
+        } else {
+            $('#main-image').css({
+                width: 'auto',
+                height: '100%',
+                opacity: '1'
+            });
         }
 
 
@@ -182,11 +182,11 @@ var selekta = function initBackend() {
         });
     }
 
-    return{
-      init : init
+    return {
+        init: init
     }
 }();
 
-$( document ).ready(function() {
-  selekta.init();
+$(document).ready(function() {
+    selekta.init();
 });

@@ -46,6 +46,7 @@ body {
     float: right;
     margin: 2px 4px 0px 0px;
     display: none;
+    z-index: 9999;
 }
 #help-window {
     -webkit-animation-duration: 0.3s;
