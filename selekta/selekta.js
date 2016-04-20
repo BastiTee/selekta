@@ -1,5 +1,6 @@
 function initBackend() {
 
+    var imgTool = require('image-size');
     const c = console;
     const $ = require('jQuery');
     const walk = require('walk');
@@ -7,6 +8,7 @@ function initBackend() {
     const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
     const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
     const ipc = require('electron').ipcRenderer;
+
     var imagePaths = [];
     var currImageIdx = 0;
     var currImagePath = '';
@@ -95,9 +97,33 @@ function initBackend() {
 
         currImagePath = imagePaths[currImageIdx];
 
+        imgTool(currImagePath, function(e, dimensions){
+          getAspectRatio(dimensions.width, dimensions.height);
+        });
+
         $('#main-image').attr("src", currImagePath);
 
+
         // TODO Make sure image fits into container
+
+    }
+
+    function getAspectRatio(picHeight, picWidth){
+        var picRatio = picWidth / picHeight;
+        var screenRatio = windowSize[0] / windowSize[1];
+
+        if(picRatio < screenRatio){
+          $('#main-image').css({
+            width: '100%',
+            height: 'auto'
+          });
+        } else{
+          $('#main-image').css({
+            width: 'auto',
+            height: '100%'
+          });
+        }
+
 
     }
 
