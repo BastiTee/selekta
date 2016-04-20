@@ -32,22 +32,58 @@ body {
 
 /* TOOLING */
 
-#help-hover {
+#toolbar {
     color: white;
     position: absolute;
-    float: left;
-    z-index: 9999;
-    margin: 2px 0px 0px 4px;
-    -webkit-animation-duration: 0.3s;
-    -moz-animation-duration: 0.3s;
+    width: 100%;
+    margin: 0px;
+    padding: 3px;
+    background-color: black;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
 }
-#load-hover {
-    color: white;
-    float: right;
-    margin: 2px 4px 0px 0px;
-    display: none;
-    z-index: 9999;
+
+#toolbar i {
+    float:left;
 }
+.bucket-quantity {
+    padding: 0px 1px 0px 5px;
+    font-size: 80%;
+    float:left;
+        
+}
+#bucket-hover-0 {
+    padding-right: 5px;
+    float:left;
+}
+#bucket-hover-1 {
+    padding-right: 5px;
+    float:left;
+}
+#bucket-hover-2 {
+    padding-right: 5px;
+    float:left;
+}
+#bucket-hover-3 {
+    padding-right: 5px;
+    float:left;
+
+}
+#help-hover {
+    padding-right: 5px;
+    float:left;
+}
+
+#load-hover{
+    float:left;
+    padding-right: 5px;
+}
+
+.toolbar-spacer {
+    margin-left: 15px;
+    float:left;
+}
+
 #help-window {
     -webkit-animation-duration: 0.3s;
     -moz-animation-duration: 0.3s;
@@ -56,13 +92,14 @@ body {
     display: none;
     color: white;
     position: absolute;
-    width: 40%;
+    width: 50%;
+    height: 55%;
     margin: 0 auto;
     left: 0;
-    top: 0;
     right: 0;
     bottom: 0;
     background-color: black;
+    border-radius: 15px 15px 0px 0px;
     opacity: 0.7;
     filter: alpha(opacity=70);
 }
@@ -82,12 +119,14 @@ body {
     display: none;
     /* invisible on start */
     position: absolute;
-    width: 25%;
+    width: 50%;
     margin: 0 auto;
     left: 0;
-    top: 0;
+    top: 20px;
     right: 0;
     bottom: 0;
+            -webkit-animation-duration: 0.3s;
+    -moz-animation-duration: 0.3s;
 }
 #notification {
     background-color: black;
@@ -95,5 +134,6 @@ body {
     opacity: 0.7;
     filter: alpha(opacity=70);
     text-align: center;
-    border-radius: 25px;
+    border-radius: 15px;
+
 }

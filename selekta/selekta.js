@@ -4,6 +4,8 @@ var selekta = function() {
     const ipc = require('electron').ipcRenderer;
     const dialog = require('electron').remote.dialog;
     var helpOpen = false;
+    var shiftPressed = false;
+    var currentFilter = undefined;
     var windowSize = undefined;
     const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
 
@@ -31,31 +33,94 @@ var selekta = function() {
 
     function registerKeys() {
         document.body.addEventListener("keydown", keyDown);
+        document.body.addEventListener("keyup", keyUp);
 
         function keyDown(event) {
-            if (event.which == 39) { // Right arrow key
+            if (event.which == 39) {
+                // Right arrow key
                 selektaImageManager.setNextImage(windowSize);
-            } else if (event.which == 37) { // Left arrow key
+            } else if (event.which == 37) {
+                // Left arrow key
                 selektaImageManager.setPreviousImage(windowSize);
-            } else if (event.which == 72) { // h key
-                toggleHelpWindow();
-            } else if (event.which == 27) { // ESC key
-                if (!helpOpen) return;
+            } else if (event.which == 72) {
+             // h key
                 toggleHelpWindow();
             } else if (event.which == 79) {
+            // o key 
                 setFolder();
-            } else if (event.which == 82) { // r key
+            } else if (event.which == 82) {
+            // r key
                 selektaImageManager.setFirstImage(windowSize);
-            } else if (event.which == 70) { // f key
+            } else if (event.which == 70) {
+                // f key
                 selektaImageManager.setLastImage(windowSize);
+            } else if (event.which == 49) {
+                 // 1 key
+                 handleBucketKey(0, shiftPressed);
+            } else if (event.which == 50) {
+                 // 2 key
+                handleBucketKey(1, shiftPressed);
+            } else if (event.which == 51) {
+                 // 3 key
+                handleBucketKey(2, shiftPressed);
+            } else if (event.which == 52) {
+                 // 4 key
+                handleBucketKey(3, shiftPressed);
+            } else if (event.which == 16 && !shiftPressed)  {
+                // Shift key
+                shiftPressed = true;!
+                console.log('shift pressed');
             } else {
-                // c.log(event.which + ' not supported.');
+                //   console.log(event.which + ' not supported.');   
+            }
+            updateData();
+        }
+
+        function keyUp(event) {
+            if (event.which == 16) {
+                console.log('shift released');
+                shiftPressed = false;
             }
         }
 
         $('#help-hover').click(toggleHelpWindow);
         $('#help-window').click(toggleHelpWindow);
-    }
+    };
+
+    function handleBucketKey (bucketId, shiftPressed) {
+        $('#bucket-hover-'+bucketId+' i').animateCss('bounce');
+        if (shiftPressed) {
+            quantities = selektaImageManager.getBucketQuantities();
+            if (quantities[bucketId] == 0) {
+                //notify('Cannot filter empty bucket');
+                return;
+            }
+
+            console.log('filtering ' + bucketId);
+        } else {
+            selektaImageManager.evaluateBucketCall(bucketId);    
+        }
+        updateData();       
+  
+    };
+
+    function updateData ( ) {
+        quantities = selektaImageManager.getBucketQuantities();
+        totalBucketized = 0;
+        totalImages = selektaImageManager.getTotalImages();
+        for ( i = 0; i < quantities.length; i++) {
+            $('#bucket-hover-'+i+' .bucket-quantity').empty();
+            $('#bucket-hover-'+i).css('color', 'white');
+            $('#bucket-hover-'+i+' .bucket-quantity').append(quantities[i]);    
+            totalBucketized += quantities[i];
+        }
+        bucketForImage = selektaImageManager.getBucketForCurrentImage();
+        if (bucketForImage != undefined) {
+            $('#bucket-hover-'+bucketForImage[0]).css('color', 'lightblue');
+        }
+        $('#total-images .bucket-quantity').empty();
+        $('#total-images .bucket-quantity').append(totalBucketized + '/' + totalImages);
+    };
 
     $.fn.extend({
         animateCss: function(animationName, hide) {
@@ -75,26 +140,32 @@ var selekta = function() {
     function toggleHelpWindow() {
 
         if (helpOpen) {
-            $('#help-hover').animateCss('slideInDown', false);
-            $('#help-window').animateCss('slideOutUp', true);
+            $('#help-hover').animateCss('bounce');
+            $('#help-window').animateCss('slideOutDown', true);
         } else {
-            $('#help-hover').animateCss('slideOutUp', true);
-            $('#help-window').animateCss('slideInDown', false);
+            $('#help-hover').animateCss('bounce');
+            $('#help-window').animateCss('slideInUp', false);
         }
         helpOpen = !helpOpen;
-    }
+    };
 
     function setFolder(explicitFolder) {
         if (explicitFolder === undefined) {
             dialog.showOpenDialog({
                 properties: ['openFile', 'openDirectory', 'multiSelections']
             }, function(imageDir) {
-                selektaImageManager.setRootFolder(imageDir[0], windowSize);
+                selektaImageManager.setRootFolder(imageDir[0], windowSize, function() {
+                    updateData();
+                });
+                
             });
         } else {
-            selektaImageManager.setRootFolder(explicitFolder, windowSize);
+            selektaImageManager.setRootFolder(explicitFolder, windowSize, function () {
+                updateData();    
+            });
+            
         }
-    }
+    };
 
     function notify(message) {
         $('#notification').text(message);
@@ -109,11 +180,11 @@ var selekta = function() {
 
                 }, 1000);
             });
-    }
+    };
 
     return {
         init: init
-    }
+    };
 }();
 
 $(document).ready(function() {
