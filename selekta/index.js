@@ -6,7 +6,7 @@ const windowSettings = {
     resizable: true,
     fullscreen: false,
     center: true,
-    frame: false,
+    frame: true,
     kiosk: false,
     title: 'selekta'
 };
