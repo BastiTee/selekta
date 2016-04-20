@@ -89,6 +89,8 @@ var selekta = function initBackend() {
 
     function setNextImage(newImageIdx) {
 
+        $('#load-hover').show();
+        
         currImageIdx = newImageIdx;
         if (currImageIdx < 0) {
             notify('Reached first image');
@@ -100,7 +102,7 @@ var selekta = function initBackend() {
 
         currImagePath = imagePaths[currImageIdx];
 
-        $('#load-hover').show();
+
         imgTool(currImagePath, function(e, dimensions) {
             $('#main-image').load(function(){
               $('#load-hover').hide();
