@@ -1,6 +1,7 @@
 function initBackend() {
 
     const c = console;
+    const $ = require('jQuery');
     const walk = require('walk');
     const dialog = require('electron').remote.dialog;
     const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
@@ -98,8 +99,6 @@ function initBackend() {
             dialog.showOpenDialog({
                 properties: ['openFile', 'openDirectory', 'multiSelections']
             }, function(imageDir) {
-
-                c.log('finished file selection');
                 obtainFilePaths(imageDir);
             });
         } else {

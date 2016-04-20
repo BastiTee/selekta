@@ -1,22 +1,40 @@
+/* BASIC FRAMES */
+
 body {
-    background-color: black;
     font-family: 'Open Sans', sans-serif;
+    background-color: black;
+    overflow: hidden;
+    margin: 0;
 }
 #window {
     background-color: black;
 }
+
+/* IMAGE */
+
 #image-container {
-    position:relative;
+    position: relative;
 }
 #main-image {
-    position:absolute;
+    position: absolute;
     width: 100%;
 }
+
+/* TOOLING */
+
 #help-hover {
     color: white;
     position: absolute;
+    float:left;
+    margin: 2px 0px 0px 4px;
     -webkit-animation-duration: 0.3s;
     -moz-animation-duration: 0.3s;
+}
+#load-hover {
+    color: white;
+    float: right;
+    margin: 2px 4px 0px 0px;
+    display: none;
 }
 #help-window {
     -webkit-animation-duration: 0.3s;
@@ -45,6 +63,9 @@ body {
 #help-window td {
     padding-right: 30px;
 }
+
+/* NOTIFICATIONS */
+
 #notification-box {
     display: none;
     /* invisible on start */

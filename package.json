@@ -1,20 +1,21 @@
 {
-    "name": "selekta",
-    "version": "0.1.0",
-    "author": "Basti Tee",
-    "keywords": [],
-    "style": "selekta/style.css",
-    "main": "selekta/index.js",
-    "scripts": {
-        "start": "electron ."
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/BastiTee/selekta.git"
-    },
-    "license": "GPL-3.0",
-    "dependencies": {
-        "electron-prebuilt": "^0.36.0",
-        "walk": "^2.3.9"
-    }
+  "name": "selekta",
+  "version": "0.1.0",
+  "author": "Basti Tee",
+  "keywords": [],
+  "style": "selekta/style.css",
+  "main": "selekta/index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/BastiTee/selekta.git"
+  },
+  "license": "GPL-3.0",
+  "dependencies": {
+    "electron-prebuilt": "^0.36.0",
+    "jquery": "^2.2.3",
+    "walk": "^2.3.9"
+  }
 }
