@@ -16,6 +16,7 @@ var selekta = function initBackend() {
     var windowSize = undefined;
 
     function init() {
+        $('#load-hover').hide();
         registerKeys();
     }
 
@@ -89,8 +90,6 @@ var selekta = function initBackend() {
 
     function setNextImage(newImageIdx) {
 
-        $('#load-hover').show();
-        
         currImageIdx = newImageIdx;
         if (currImageIdx < 0) {
             notify('Reached first image');
@@ -102,6 +101,7 @@ var selekta = function initBackend() {
 
         currImagePath = imagePaths[currImageIdx];
 
+        $('#load-hover').show();
 
         imgTool(currImagePath, function(e, dimensions) {
             $('#main-image').load(function(){
@@ -111,10 +111,6 @@ var selekta = function initBackend() {
         });
 
         $('#main-image').attr("src", currImagePath);
-
-
-        // TODO Make sure image fits into container
-
     }
 
     function getAspectRatio(picHeight, picWidth) {
