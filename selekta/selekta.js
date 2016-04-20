@@ -1,21 +1,24 @@
-function initBackend() {
+const ipc = require('electron').ipcRenderer;
+var imgTool = require('image-size');
+const c = console;
+const $ = require('jQuery');
+const walk = require('walk');
+const dialog = require('electron').remote.dialog;
+const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
+const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
 
-    var imgTool = require('image-size');
-    const c = console;
-    const $ = require('jQuery');
-    const walk = require('walk');
-    const dialog = require('electron').remote.dialog;
-    const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
-    const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
-    const ipc = require('electron').ipcRenderer;
+var selekta = function initBackend() {
 
-    var imagePaths = [];
-    var currImageIdx = 0;
-    var currImagePath = '';
-    var helpOpen = false;
-    var windowSize = undefined;
+    function init(){
+      var imagePaths = [];
+      var currImageIdx = 0;
+      var currImagePath = '';
+      var helpOpen = false;
+      var windowSize = undefined;
 
-    registerKeys();
+      registerKeys();
+    }
+
 
     // register size
     ipc.on('current-size', function(event, message) {
@@ -115,12 +118,14 @@ function initBackend() {
         if(picRatio < screenRatio){
           $('#main-image').css({
             width: '100%',
-            height: 'auto'
+            height: 'auto',
+            opacity: '1'
           });
         } else{
           $('#main-image').css({
             width: 'auto',
-            height: '100%'
+            height: '100%',
+            opacity: '1'
           });
         }
 
@@ -176,4 +181,12 @@ function initBackend() {
             setNextImage(0);
         });
     }
-}
+
+    return{
+      init : init
+    }
+}();
+
+$( document ).ready(function() {
+  selekta.init();
+});
