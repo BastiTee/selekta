@@ -5,7 +5,7 @@ const windowSettings = {
     resizable: true,
     fullscreen: false,
     center: true,
-    frame: true,
+    frame: false,
     kiosk: false,
     title: 'selekta'
 };
@@ -45,7 +45,8 @@ app.on('ready', function() {
     });
 
     // Open the DevTools.
-    browserWindow.openDevTools();
+    browserWindow.openDevTools({ detach: true} );
+
 
     // Emitted when the window is closed.
     browserWindow.on('closed', function() {
