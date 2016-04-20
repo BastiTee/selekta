@@ -5,13 +5,18 @@ function initBackend() {
     const dialog = require('electron').remote.dialog;
     const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
     const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
-
+    const ipc = require('electron').ipcRenderer;
     var imagePaths = [];
     var currImageIdx = 0;
     var currImagePath = '';
     var helpOpen = false;
     var windowSize = undefined;
 
+    // register size
+    ipc.on('current-size', function(event, message) {
+        console.log('new window size: ' + message[0] + 'x' + message[1]);
+        windowSize = message;
+    });
     registerKeys();
     setFolder();
 
@@ -83,19 +88,24 @@ function initBackend() {
         currImagePath = imagePaths[currImageIdx];
 
         $('#main-image').attr("src", currImagePath);
+
+        // TODO Make sure image fits into container
+
     }
-
-
 
     function setFolder(explicitFolder) {
         if (explicitFolder === undefined) {
-            imageDir = dialog.showOpenDialog({
+            dialog.showOpenDialog({
                 properties: ['openFile', 'openDirectory', 'multiSelections']
+            }, function(imageDir) {
+
+                c.log('finished file selection');
+                obtainFilePaths(imageDir);
             });
         } else {
             imageDir = [explicitFolder];
         }
-        obtainFilePaths(imageDir[0]);
+
     }
 
     function notify(message) {
@@ -111,11 +121,13 @@ function initBackend() {
 
                 }, 1000);
             });
-
-
     }
 
     function obtainFilePaths(rootDir) {
+        if (rootDir == undefined) {
+            return;
+        }
+        rootDir = rootDir[0];
         imagePaths = [];
         var walker = walk.walk(rootDir, {
             followLinks: false

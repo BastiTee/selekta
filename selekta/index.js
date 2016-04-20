@@ -1,18 +1,17 @@
 const electron = require('electron');
 const app = electron.app;
-const Menu = electron.Menu;
-const Tray = electron.Tray;
-const BrowserWindow = electron.BrowserWindow;
+const ipc = electron.ipcMain;
 const windowSettings = {
     resizable: true,
     fullscreen: false,
     center: true,
     frame: true,
+    kiosk: false,
     title: 'selekta'
 };
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-var mainWindow = null;
+var browserWindow = null;
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -27,21 +26,32 @@ app.on('window-all-closed', function() {
 // initialization and is ready to create browser windows.
 app.on('ready', function() {
     // Create the browser window.
-    mainWindow = new BrowserWindow(windowSettings);
+    browserWindow = new electron.BrowserWindow(windowSettings);
 
-    mainWindow.setMenu(null); // disable default menu
+    browserWindow.setMenu(null); // disable default menu
 
     // and load the index.html of the app.
-    mainWindow.loadURL('file://' + __dirname + '/index.html');
+    browserWindow.loadURL('file://' + __dirname + '/index.html');
+
+    browserWindow.webContents.on('did-finish-load', function() {
+        // send current size
+        browserWindow.webContents.send('current-size',
+            browserWindow.getSize());
+        // register listener to tell render thread about new sizes
+        browserWindow.on('resize', function() {
+            browserWindow.webContents.send('current-size',
+                browserWindow.getSize());
+        });
+    });
 
     // Open the DevTools.
-    // mainWindow.openDevTools();
+    browserWindow.openDevTools();
 
     // Emitted when the window is closed.
-    mainWindow.on('closed', function() {
+    browserWindow.on('closed', function() {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
-        mainWindow = null;
+        browserWindow = null;
     });
 });
