@@ -9,6 +9,9 @@ const windowSettings = {
     kiosk: false,
     title: 'selekta'
 };
+const devMode = process.argv[2] == "dev" ? true : false;
+console.log('DEVELOPER MODE=' + devMode);
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 var browserWindow = null;
@@ -44,9 +47,12 @@ app.on('ready', function() {
         });
     });
 
-    // Open the DevTools.
-    browserWindow.openDevTools({ detach: true} );
-
+    if (devMode) {
+        // Open the DevTools.
+        browserWindow.openDevTools({
+            detach: true
+        });
+    }
 
     // Emitted when the window is closed.
     browserWindow.on('closed', function() {

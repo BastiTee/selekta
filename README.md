@@ -5,6 +5,7 @@
 
 * Install dependencies with `npm install`
 * Start application with `npm start`
+* Start application in development mode with `npm run start -- dev`
 
 ## Licence
 
