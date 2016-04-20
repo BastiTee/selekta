@@ -9,13 +9,13 @@ const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimati
 
 var selekta = function initBackend() {
 
-    function init() {
-        var imagePaths = [];
-        var currImageIdx = 0;
-        var currImagePath = '';
-        var helpOpen = false;
-        var windowSize = undefined;
+    var imagePaths = [];
+    var currImageIdx = 0;
+    var currImagePath = '';
+    var helpOpen = false;
+    var windowSize = undefined;
 
+    function init() {
         registerKeys();
     }
 
@@ -100,7 +100,11 @@ var selekta = function initBackend() {
 
         currImagePath = imagePaths[currImageIdx];
 
+        $('#load-hover').show();
         imgTool(currImagePath, function(e, dimensions) {
+            $('#main-image').load(function(){
+              $('#load-hover').hide();
+            })
             getAspectRatio(dimensions.width, dimensions.height);
         });
 
