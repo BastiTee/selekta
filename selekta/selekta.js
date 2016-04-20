@@ -1,32 +1,28 @@
-const ipc = require('electron').ipcRenderer;
-const imgTool = require('image-size');
-const c = console;
 const $ = require('jQuery');
-const walk = require('walk');
-const dialog = require('electron').remote.dialog;
-const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
-const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
 
-var selekta = function initBackend() {
-
-    var imagePaths = [];
-    var currImageIdx = 0;
-    var currImagePath = '';
+var selekta = function() {
+    const ipc = require('electron').ipcRenderer;
+    const dialog = require('electron').remote.dialog;
     var helpOpen = false;
     var windowSize = undefined;
+    const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
 
     function init() {
         $('#load-hover').hide();
         registerKeys();
+        require('./image-manager.js');
+        selektaImageManager.init(notify);
     }
 
-    // register size
-    ipc.on('current-size', function(event, message) {
-        c.log('new window size: ' + message[0] + 'x' + message[1]);
-        windowSize = message;
+    // register size listener
+    ipc.on('current-size', function(event, newWindowSize) {
+        console.log('current-size event received: ' + newWindowSize);
+        windowSize = newWindowSize;
     });
-    // register size
+
+    // register open-folder request from main thread
     ipc.on('open-folder', function(event, rootDir) {
+        console.log('open-folder event received');
         if (rootDir == undefined)
             setFolder();
         else
@@ -38,9 +34,9 @@ var selekta = function initBackend() {
 
         function keyDown(event) {
             if (event.which == 39) { // Right arrow key
-                setNextImage(currImageIdx + 1);
+                selektaImageManager.setNextImage(windowSize);
             } else if (event.which == 37) { // Left arrow key
-                setNextImage(currImageIdx - 1);
+                selektaImageManager.setPreviousImage(windowSize);
             } else if (event.which == 72) { // h key
                 toggleHelpWindow();
             } else if (event.which == 27) { // ESC key
@@ -49,14 +45,13 @@ var selekta = function initBackend() {
             } else if (event.which == 79) {
                 setFolder();
             } else if (event.which == 82) { // r key
-                setNextImage(-1);
+                selektaImageManager.setFirstImage(windowSize);
             } else if (event.which == 70) { // f key
-                setNextImage(imagePaths.length);
+                selektaImageManager.setLastImage(windowSize);
             } else {
                 // c.log(event.which + ' not supported.');
             }
         }
-
 
         $('#help-hover').click(toggleHelpWindow);
         $('#help-window').click(toggleHelpWindow);
@@ -67,12 +62,13 @@ var selekta = function initBackend() {
             if (!hide) {
                 $(this).show();
             }
-            $(this).addClass('animated ' + animationName).one(animationEnd, function() {
-                $(this).removeClass('animated ' + animationName);
-                if (hide) {
-                    $(this).hide();
-                }
-            });
+            $(this).addClass('animated ' + animationName).one(animationEnd,
+                function() {
+                    $(this).removeClass('animated ' + animationName);
+                    if (hide) {
+                        $(this).hide();
+                    }
+                });
         }
     });
 
@@ -88,63 +84,16 @@ var selekta = function initBackend() {
         helpOpen = !helpOpen;
     }
 
-    function setNextImage(newImageIdx) {
-
-        currImageIdx = newImageIdx;
-        if (currImageIdx < 0) {
-            notify('Reached first image');
-        } else if (currImageIdx >= imagePaths.length) {
-            notify('Reached last image');
-        }
-        currImageIdx = currImageIdx > 0 ? currImageIdx < imagePaths.length - 1 ?
-            currImageIdx : imagePaths.length - 1 : 0;
-
-        currImagePath = imagePaths[currImageIdx];
-
-        $('#load-hover').show();
-
-        imgTool(currImagePath, function(e, dimensions) {
-            $('#main-image').load(function(){
-              $('#load-hover').hide();
-            })
-            getAspectRatio(dimensions.width, dimensions.height);
-        });
-
-        $('#main-image').attr("src", currImagePath);
-    }
-
-    function getAspectRatio(picHeight, picWidth) {
-        var picRatio = picWidth / picHeight;
-        var screenRatio = windowSize[0] / windowSize[1];
-
-        if (picRatio < screenRatio) {
-            $('#main-image').css({
-                width: '100%',
-                height: 'auto',
-                opacity: '1'
-            });
-        } else {
-            $('#main-image').css({
-                width: 'auto',
-                height: '100%',
-                opacity: '1'
-            });
-        }
-
-
-    }
-
     function setFolder(explicitFolder) {
         if (explicitFolder === undefined) {
             dialog.showOpenDialog({
                 properties: ['openFile', 'openDirectory', 'multiSelections']
             }, function(imageDir) {
-                obtainFilePaths(imageDir);
+                selektaImageManager.setRootFolder(imageDir[0], windowSize);
             });
         } else {
-            obtainFilePaths([explicitFolder]);
+            selektaImageManager.setRootFolder(explicitFolder, windowSize);
         }
-
     }
 
     function notify(message) {
@@ -160,28 +109,6 @@ var selekta = function initBackend() {
 
                 }, 1000);
             });
-    }
-
-    function obtainFilePaths(rootDir) {
-        if (rootDir == undefined) {
-            return;
-        }
-        rootDir = rootDir[0];
-        imagePaths = [];
-        c.log('walking in directory ' + rootDir);
-        var walker = walk.walk(rootDir, {
-            followLinks: false
-        });
-
-        walker.on('file', function(root, stat, next) {
-            if (stat.name.match(supportedFileSuffixes)) {
-                imagePaths.push(root + '/' + stat.name);
-            }
-            next();
-        });
-        walker.on('end', function() {
-            setNextImage(0);
-        });
     }
 
     return {

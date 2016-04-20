@@ -11,11 +11,10 @@ const windowSettings = {
     title: 'selekta'
 };
 const devMode = process.argv[2] == "dev" ? true : false;
-console.log('DEVELOPER MODE=' + devMode);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-var browserWindow = null;
+var bw = null;
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -30,41 +29,41 @@ app.on('window-all-closed', function() {
 // initialization and is ready to create browser windows.
 app.on('ready', function() {
     // Create the browser window.
-    browserWindow = new electron.BrowserWindow(windowSettings);
+    bw = new electron.BrowserWindow(windowSettings);
 
-    browserWindow.setMenu(null); // disable default menu
+    // disable default menu
+    bw.setMenu(null);
 
     // and load the index.html of the app.
-    browserWindow.loadURL('file://' + __dirname + '/index.html');
+    bw.loadURL('file://' + __dirname + '/index.html');
 
-    browserWindow.webContents.on('did-finish-load', function() {
+    bw.webContents.on('did-finish-load', function() {
         // send current size
-        browserWindow.webContents.send('current-size',
-            browserWindow.getSize());
+        bw.webContents.send('current-size', bw.getSize());
         if (devMode) {
-            browserWindow.webContents.send('open-folder', path.resolve(__dirname, '..'));
+            bw.webContents.send('open-folder',
+                path.resolve(__dirname, '..'));
         } else {
-            browserWindow.webContents.send('open-folder');
+            bw.webContents.send('open-folder');
         }
         // register listener to tell render thread about new sizes
-        browserWindow.on('resize', function() {
-            browserWindow.webContents.send('current-size',
-                browserWindow.getSize());
+        bw.on('resize', function() {
+            bw.webContents.send('current-size',
+                bw.getSize());
         });
     });
 
     if (devMode) {
-        // Open the DevTools.
-        browserWindow.openDevTools({
+        bw.openDevTools({
             detach: true
         });
     }
 
     // Emitted when the window is closed.
-    browserWindow.on('closed', function() {
+    bw.on('closed', function() {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
-        browserWindow = null;
+        bw = null;
     });
 });
