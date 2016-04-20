@@ -13,13 +13,20 @@ function initBackend() {
     var helpOpen = false;
     var windowSize = undefined;
 
+    registerKeys();
+
     // register size
     ipc.on('current-size', function(event, message) {
-        console.log('new window size: ' + message[0] + 'x' + message[1]);
+        c.log('new window size: ' + message[0] + 'x' + message[1]);
         windowSize = message;
     });
-    registerKeys();
-    setFolder();
+    // register size
+    ipc.on('open-folder', function(event, rootDir) {
+        if (rootDir == undefined)
+            setFolder();
+        else
+            setFolder(rootDir + '/sample-images');
+    });
 
     function registerKeys() {
         document.body.addEventListener("keydown", keyDown);
@@ -102,7 +109,7 @@ function initBackend() {
                 obtainFilePaths(imageDir);
             });
         } else {
-            imageDir = [explicitFolder];
+            obtainFilePaths([explicitFolder]);
         }
 
     }
@@ -128,6 +135,7 @@ function initBackend() {
         }
         rootDir = rootDir[0];
         imagePaths = [];
+        c.log('walking in directory ' + rootDir);
         var walker = walk.walk(rootDir, {
             followLinks: false
         });

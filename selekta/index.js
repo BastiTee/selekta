@@ -1,6 +1,7 @@
 const electron = require('electron');
 const app = electron.app;
 const ipc = electron.ipcMain;
+const path = require('path');
 const windowSettings = {
     resizable: true,
     fullscreen: false,
@@ -40,6 +41,11 @@ app.on('ready', function() {
         // send current size
         browserWindow.webContents.send('current-size',
             browserWindow.getSize());
+        if (devMode) {
+            browserWindow.webContents.send('open-folder', path.resolve(__dirname, '..'));
+        } else {
+            browserWindow.webContents.send('open-folder');
+        }
         // register listener to tell render thread about new sizes
         browserWindow.on('resize', function() {
             browserWindow.webContents.send('current-size',
