@@ -2,7 +2,7 @@ selektaImageManager = function() {
     const imsize = require('image-size');
     const walk = require('walk');
     const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
-    
+
     var imagePaths = [];
     var currImageIdx = 0;
     var currImagePath = '';
@@ -15,9 +15,9 @@ selektaImageManager = function() {
     };
 
     var resetBuckets = function() {
-        for (i = 0; i < 4; i++) { 
+        for (i = 0; i < 4; i++) {
             buckets[i] = [];
-        }  
+        }
     };
 
     var setRootFolder = function(rootFolder, windowSize, cb) {
@@ -102,39 +102,39 @@ selektaImageManager = function() {
     };
 
     function getBucketForCurrentImage() {
-        for (i = 0; i < buckets.length; i++) { 
+        for (i = 0; i < buckets.length; i++) {
             for (j = 0; j < buckets[i].length; j++) {
                 if (buckets[i][j] === currImagePath) {
-                    return [ i, j];
-                }    
+                    return [i, j];
+                }
             }
         }
         return undefined;
     };
 
     function evaluateBucketCall(bucketId) {
-        
-        if (bucketId >= buckets.length) 
+
+        if (bucketId >= buckets.length)
             return;
 
-        // check if the image is contained in any of the buckets and remove if yes 
+        // check if the image is contained in any of the buckets and remove if yes
         var foundInBucket = getBucketForCurrentImage();
 
-        console.log('BUCKET EVAL: ID=' + bucketId + ' IMG=' + currImagePath.split(/[\\/]/).pop() + ' INBUCKET=' + foundInBucket);            
+        console.log('BUCKET EVAL: ID=' + bucketId + ' IMG=' + currImagePath.split(/[\\/]/).pop() + ' INBUCKET=' + foundInBucket);
 
-        if (foundInBucket === undefined ) {
+        if (foundInBucket === undefined) {
             buckets[bucketId].push(currImagePath);
         } else {
             buckets[foundInBucket[0]].splice(foundInBucket[1], 1);
-            if (foundInBucket[0] != bucketId) 
+            if (foundInBucket[0] != bucketId)
                 buckets[bucketId].push(currImagePath);
         }
 
-        // print for debugging 
-        for (i = 0; i < buckets.length; i++) { 
-            console.log('  [' + (i+1) + ']');
+        // print for debugging
+        for (i = 0; i < buckets.length; i++) {
+            console.log('  [' + (i + 1) + ']');
             for (j = 0; j < buckets[i].length; j++) {
-                console.log('      ['+j+'] ' + buckets[i][j] );
+                console.log('      [' + j + '] ' + buckets[i][j]);
             }
         }
     };

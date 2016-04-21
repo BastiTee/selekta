@@ -42,48 +42,42 @@ body {
     opacity: 0.7;
     filter: alpha(opacity=70);
 }
-
 #toolbar i {
-    float:left;
+    float: left;
 }
 .bucket-quantity {
     padding: 0px 1px 0px 5px;
     font-size: 80%;
-    float:left;
-        
+    float: left;
 }
 #bucket-hover-0 {
     padding-right: 5px;
-    float:left;
+    float: left;
 }
 #bucket-hover-1 {
     padding-right: 5px;
-    float:left;
+    float: left;
 }
 #bucket-hover-2 {
     padding-right: 5px;
-    float:left;
+    float: left;
 }
 #bucket-hover-3 {
     padding-right: 5px;
-    float:left;
-
+    float: left;
 }
 #help-hover {
     padding-right: 5px;
-    float:left;
+    float: left;
 }
-
-#load-hover{
-    float:left;
+#load-hover {
+    float: left;
     padding-right: 5px;
 }
-
 .toolbar-spacer {
     margin-left: 15px;
-    float:left;
+    float: left;
 }
-
 #help-window {
     -webkit-animation-duration: 0.3s;
     -moz-animation-duration: 0.3s;
@@ -125,7 +119,7 @@ body {
     top: 20px;
     right: 0;
     bottom: 0;
-            -webkit-animation-duration: 0.3s;
+    -webkit-animation-duration: 0.3s;
     -moz-animation-duration: 0.3s;
 }
 #notification {
@@ -135,5 +129,4 @@ body {
     filter: alpha(opacity=70);
     text-align: center;
     border-radius: 15px;
-
 }

@@ -43,35 +43,35 @@ var selekta = function() {
                 // Left arrow key
                 selektaImageManager.setPreviousImage(windowSize);
             } else if (event.which == 72) {
-             // h key
+                // h key
                 toggleHelpWindow();
             } else if (event.which == 79) {
-            // o key 
+                // o key
                 setFolder();
             } else if (event.which == 82) {
-            // r key
+                // r key
                 selektaImageManager.setFirstImage(windowSize);
             } else if (event.which == 70) {
                 // f key
                 selektaImageManager.setLastImage(windowSize);
             } else if (event.which == 49) {
-                 // 1 key
-                 handleBucketKey(0, shiftPressed);
+                // 1 key
+                handleBucketKey(0);
             } else if (event.which == 50) {
-                 // 2 key
-                handleBucketKey(1, shiftPressed);
+                // 2 key
+                handleBucketKey(1);
             } else if (event.which == 51) {
-                 // 3 key
-                handleBucketKey(2, shiftPressed);
+                // 3 key
+                handleBucketKey(2);
             } else if (event.which == 52) {
-                 // 4 key
-                handleBucketKey(3, shiftPressed);
-            } else if (event.which == 16 && !shiftPressed)  {
+                // 4 key
+                handleBucketKey(3);
+            } else if (event.which == 16 && !shiftPressed) {
                 // Shift key
-                shiftPressed = true;!
+                shiftPressed = true;
                 console.log('shift pressed');
             } else {
-                //   console.log(event.which + ' not supported.');   
+                //   console.log(event.which + ' not supported.');
             }
             updateData();
         }
@@ -87,36 +87,36 @@ var selekta = function() {
         $('#help-window').click(toggleHelpWindow);
     };
 
-    function handleBucketKey (bucketId, shiftPressed) {
-        $('#bucket-hover-'+bucketId+' i').animateCss('bounce');
+    function handleBucketKey(bucketId) {
+        $('#bucket-hover-' + bucketId + ' i').animateCss('bounce');
         if (shiftPressed) {
             quantities = selektaImageManager.getBucketQuantities();
             if (quantities[bucketId] == 0) {
-                //notify('Cannot filter empty bucket');
+                notify('Cannot filter empty bucket');
                 return;
             }
 
             console.log('filtering ' + bucketId);
         } else {
-            selektaImageManager.evaluateBucketCall(bucketId);    
+            selektaImageManager.evaluateBucketCall(bucketId);
         }
-        updateData();       
-  
+        updateData();
+
     };
 
-    function updateData ( ) {
+    function updateData() {
         quantities = selektaImageManager.getBucketQuantities();
         totalBucketized = 0;
         totalImages = selektaImageManager.getTotalImages();
-        for ( i = 0; i < quantities.length; i++) {
-            $('#bucket-hover-'+i+' .bucket-quantity').empty();
-            $('#bucket-hover-'+i).css('color', 'white');
-            $('#bucket-hover-'+i+' .bucket-quantity').append(quantities[i]);    
+        for (i = 0; i < quantities.length; i++) {
+            $('#bucket-hover-' + i + ' .bucket-quantity').empty();
+            $('#bucket-hover-' + i).css('color', 'white');
+            $('#bucket-hover-' + i + ' .bucket-quantity').append(quantities[i]);
             totalBucketized += quantities[i];
         }
         bucketForImage = selektaImageManager.getBucketForCurrentImage();
         if (bucketForImage != undefined) {
-            $('#bucket-hover-'+bucketForImage[0]).css('color', 'lightblue');
+            $('#bucket-hover-' + bucketForImage[0]).css('color', 'lightblue');
         }
         $('#total-images .bucket-quantity').empty();
         $('#total-images .bucket-quantity').append(totalBucketized + '/' + totalImages);
@@ -157,13 +157,13 @@ var selekta = function() {
                 selektaImageManager.setRootFolder(imageDir[0], windowSize, function() {
                     updateData();
                 });
-                
+
             });
         } else {
-            selektaImageManager.setRootFolder(explicitFolder, windowSize, function () {
-                updateData();    
+            selektaImageManager.setRootFolder(explicitFolder, windowSize, function() {
+                updateData();
             });
-            
+
         }
     };
 
