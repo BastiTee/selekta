@@ -1,14 +1,15 @@
 const $ = require('jQuery');
 
-var selekta = function() {
+var selektaCore = function() {
     const ipc = require('electron').ipcRenderer;
     const dialog = require('electron').remote.dialog;
+    const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+
     var helpOpen = false;
     var shiftPressed = false;
     var ctrlPressed = false;
-    var currentFilter = undefined;
     var windowSize = undefined;
-    const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+
 
     function init() {
         $('#load-hover').hide();
@@ -57,9 +58,9 @@ var selekta = function() {
                 selektaImageManager.setLastImage(windowSize);
             } else if (event.which >= 49 && event.which <= 57) {
                 // 1-9 keys
-                handleBucketKey(event.which - 49);
+                addToBucket(event.which - 49);
             } else if (event.which == 65 ) {
-                // a key 
+                // a key
                 addBucket();
             } else if (event.which == 16 && !shiftPressed) {
                 // Shift key
@@ -72,7 +73,7 @@ var selekta = function() {
             } else {
                 console.log(event.which + ' not supported.');
             }
-            updateData();
+            updateView();
         }
 
         function keyUp(event) {
@@ -95,15 +96,14 @@ var selekta = function() {
             notify("No more new buckets allowed.");
             return;
         }
-
         $("#bucket-container").append(
             "<div id=\"bucket-" + nextId + "\" class=\"bucket\" >" +
             "<i class=\"fa fa-folder\"></i>" +
             "<div class=\"bucket-quantity\">0</div></div>");
     }
 
-    function handleBucketKey(bucketId) {
-        $('#bucket-' + bucketId + '.bucket i').animateCss('bounce');
+    function addToBucket(bucketId) {
+        animateCss('#bucket-' + bucketId + '.bucket i', 'bounce');
         if (shiftPressed) {
             shiftPressed = false;
             quantities = selektaImageManager.getBucketQuantities();
@@ -119,24 +119,24 @@ var selekta = function() {
                 return;
             }
             buttons = ['Yes', 'No'];
-            dialog.showMessageBox({ type: 'question', buttons: buttons, 
+            dialog.showMessageBox({ type: 'question', buttons: buttons,
                 message: 'Do you really want to empty bucket ' + (bucketId+1) + '?',
-                noLink: true }, 
+                noLink: true },
                 function (buttonIndex) {
                     if ( buttons[buttonIndex] == "Yes" ) {
                         selektaImageManager.clearBucket(bucketId);
-                        updateData();
+                        updateView();
                     }
             });
-            
+
         } else {
             selektaImageManager.evaluateBucketCall(bucketId);
         }
-        updateData();
+        updateView();
 
     };
 
-    function updateData(reset) {
+    function updateView(reset) {
         if (reset === true) {
             $('#bucket-container').empty();
         }
@@ -157,29 +157,24 @@ var selekta = function() {
         $('#total-images .bucket-quantity').append(totalBucketized + '/' + totalImages);
     };
 
-    $.fn.extend({
-        animateCss: function(animationName, hide) {
-            if (!hide) {
-                $(this).show();
-            }
-            $(this).addClass('animated ' + animationName).one(animationEnd,
-                function() {
-                    $(this).removeClass('animated ' + animationName);
-                    if (hide) {
-                        $(this).hide();
-                    }
-                });
-        }
-    });
+    function animateCss( elementId, animationName, hide) {
+        if (!hide)
+            $(elementId).show();
+        $(elementId).addClass('animated ' + animationName).one(animationEnd,
+            function() {
+                $(elementId).removeClass('animated ' + animationName);
+                if (hide)
+                    $(elementId).hide();
+            });
+    };
 
     function toggleHelpWindow() {
-
         if (helpOpen) {
-            $('#help-hover').animateCss('bounce');
-            $('#help-window').animateCss('slideOutDown', true);
+            animateCss('#help-hover','bounce');
+            animateCss('#help-window','slideOutDown', true);
         } else {
-            $('#help-hover').animateCss('bounce');
-            $('#help-window').animateCss('slideInUp', false);
+            animateCss('#help-hover','bounce');
+            animateCss('#help-window','slideInUp', false);
         }
         helpOpen = !helpOpen;
     };
@@ -190,15 +185,13 @@ var selekta = function() {
                 properties: ['openFile', 'openDirectory', 'multiSelections']
             }, function(imageDir) {
                 selektaImageManager.setRootFolder(imageDir[0], windowSize, function() {
-                    updateData(true);
+                    updateView(true);
                 });
-
             });
         } else {
             selektaImageManager.setRootFolder(explicitFolder, windowSize, function() {
-                updateData(true);
+                updateView(true);
             });
-
         }
     };
 
@@ -223,5 +216,5 @@ var selekta = function() {
 }();
 
 $(document).ready(function() {
-    selekta.init();
+    selektaCore.init();
 });

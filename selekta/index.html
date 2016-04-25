@@ -8,10 +8,8 @@
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="selekta.js"></script>
 </head>
-
 <body>
     <div id="window">
-
         <div id="image-container">
             <img id="main-image" />
         </div>
@@ -20,15 +18,9 @@
                 <i class="fa fa-camera"></i>
                 <div class="bucket-quantity">0</div>
             </div>
-            <div class="toolbar-spacer">
-                <p/>
-            </div>
-            <div id="bucket-container">
-                
-            </div>
-            <div class="toolbar-spacer">
-                <p/>
-            </div>
+            <div class="toolbar-spacer"><p/></div>
+            <div id="bucket-container"></div>
+            <div class="toolbar-spacer"><p/></div>
             <div id="help-hover">
                 <i class="fa fa-question-circle"></i>
             </div>
@@ -37,73 +29,24 @@
             </div>
         </div>
         <div id="help-window">
-            <b>Help</b>
-            <br />
+            <b>Help</b><br />
             <table>
-                <tr>
-                    <td>&rarr;</td>
-                    <td>Next image</td>
-                </tr>
-                <tr>
-                    <td>&larr;</td>
-                    <td>Previous image</td>
-                </tr>
-                <tr>
-                    <td>R</td>
-                    <td>Rewind to first image</td>
-                </tr>
-                <tr>
-                    <td>F</td>
-                    <td>Forward to last image</td>
-                </tr>
-                <tr>
-                    <td colspan="2" />
-                </tr>
-                <tr>
-                    <td colspan="2" />
-                </tr>
-                <tr>
-                    <td>A</td>
-                    <td>Create a new bucket (9 at most)</td>
-                </tr>
-                <tr>
-                    <td>1-9</td>
-                    <td>Add/Remove image from bucket 1-9</td>
-                </tr>
-                <tr>
-                    <td>Shift + 1-9</td>
-                    <td>Only show images from bucket 1-9</td>
-                </tr>
-                <tr>
-                    <td>Ctrl + 1-9</td>
-                    <td>Clear bucket 1-9</td>
-                </tr>
-                <tr>
-                    <td colspan="2" />
-                </tr>
-                <tr>
-                    <td colspan="2" />
-                </tr>
-                <tr>
-                    <td>O</td>
-                    <td>Select new image folder</td>
-                </tr>
-                <tr>
-                    <td>H</td>
-                    <td>Toggle help</td>
-                </tr>
-
+                <tr><td>&rarr;</td><td>Next image</td></tr>
+                <tr><td>&larr;</td><td>Previous image</td></tr>
+                <tr><td>R</td><td>Rewind to first image</td></tr>
+                <tr><td>F</td><td>Forward to last image</td></tr>
+                <tr><td colspan="2" /></tr>
+                <tr><td>A</td><td>Create a new bucket (9 at most)</td></tr>
+                <tr><td>1-9</td><td>Add/Remove image from bucket 1-9</td></tr>
+                <tr><td>Shift + 1-9</td><td>Only show images from bucket 1-9</td></tr>
+                <tr><td>Ctrl + 1-9</td><td>Clear bucket 1-9</td></tr>
+                <tr><td colspan="2" /></tr>
+                <tr><td>O</td><td>Select new image folder</td></tr>
+                <tr><td>H</td><td>Toggle help</td></tr>
             </table>
-            <br />
-            <p>Click box to close help.</p>
-
+            <br /><p>Click box to close help.</p>
         </div>
-        <div id="notification-box">
-            <p id="notification"></p>
-        </div>
-
-
+        <div id="notification-box"><p id="notification"></p></div>
     </div>
 </body>
-
 </html>

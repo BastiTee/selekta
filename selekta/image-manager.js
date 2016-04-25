@@ -1,15 +1,15 @@
 selektaImageManager = function() {
     const imsize = require('image-size');
     const walk = require('walk');
-    const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
+    const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg|png|gif)$', 'i');
     const maxBuckets = 9;
 
-    var imagePaths = [];
+    var image = [];
+    var buckets = [];
     var currImagePath = '';
     var currImageIdx = 0;
     var currBucketIdx = 0;
     var notify = undefined;
-    var buckets = [];
 
     var init = function(notifyCallback) {
         notify = notifyCallback;
@@ -19,12 +19,14 @@ selektaImageManager = function() {
     var resetBuckets = function() {
         buckets = [];
         currBucketIdx = 0;
+        printBuckets();
     };
 
     var clearBucket = function(bucketId) {
         if (bucketId == undefined)
             return;
         buckets[bucketId] = [];
+        printBuckets();
     }
 
     var getNextBucketIdx = function () {
@@ -32,25 +34,26 @@ selektaImageManager = function() {
             return undefined;
         buckets[currBucketIdx] = [];
         currBucketIdx++;
+        printBuckets();
         return currBucketIdx - 1;
     };
 
     var getCurrentBucketIdx = function () {
-        return currBucketIdx - 1;  
+        return currBucketIdx - 1;
     }
 
     var setRootFolder = function(rootFolder, windowSize, cb) {
         if (rootFolder == undefined) {
             return;
         }
-        imagePaths = [];
+        image = [];
         var walker = walk.walk(rootFolder, {
             followLinks: false
         });
 
         walker.on('file', function(root, stat, next) {
             if (stat.name.match(supportedFileSuffixes)) {
-                imagePaths.push(root + '/' + stat.name);
+                image.push(root + '/' + stat.name);
             }
             next();
         });
@@ -74,7 +77,7 @@ selektaImageManager = function() {
     };
 
     var setLastImage = function(windowSize) {
-        setImage(imagePaths.length, windowSize);
+        setImage(image.length, windowSize);
     };
 
     var setImage = function(newImageIdx, windowSize) {
@@ -82,13 +85,13 @@ selektaImageManager = function() {
         currImageIdx = newImageIdx;
         if (currImageIdx < 0) {
             showNotification('Reached first image');
-        } else if (currImageIdx >= imagePaths.length) {
+        } else if (currImageIdx >= image.length) {
             showNotification('Reached last image');
         }
-        currImageIdx = currImageIdx > 0 ? currImageIdx < imagePaths.length - 1 ?
-            currImageIdx : imagePaths.length - 1 : 0;
+        currImageIdx = currImageIdx > 0 ? currImageIdx < image.length - 1 ?
+            currImageIdx : image.length - 1 : 0;
 
-        currImagePath = imagePaths[currImageIdx];
+        currImagePath = image[currImageIdx];
 
         $('#load-hover').show();
         imsize(currImagePath, function(e, dimensions) {
@@ -139,8 +142,6 @@ selektaImageManager = function() {
         // check if the image is contained in any of the buckets and remove if yes
         var foundInBucket = getBucketForCurrentImage();
 
-        console.log('BUCKET EVAL: ID=' + bucketId + ' IMG=' + currImagePath.split(/[\\/]/).pop() + ' INBUCKET=' + foundInBucket);
-
         if (foundInBucket === undefined) {
             buckets[bucketId].push(currImagePath);
         } else {
@@ -148,11 +149,15 @@ selektaImageManager = function() {
             if (foundInBucket[0] != bucketId)
                 buckets[bucketId].push(currImagePath);
         }
+        printBuckets();
+    };
 
+    function printBuckets() {
+        console.log('- BUCKETS ----------------------------');
         for (i = 0; i < buckets.length; i++) {
-            console.log('  [' + (i + 1) + ']');
+            console.log('  [B#' + (i + 1) + ']');
             for (j = 0; j < buckets[i].length; j++) {
-                console.log('      [' + j + '] ' + buckets[i][j]);
+                console.log('      [I#' + j + '] ' + buckets[i][j].split(/[\\/]/).pop());
             }
         }
     };
@@ -166,13 +171,13 @@ selektaImageManager = function() {
     };
 
     function getTotalImages() {
-        return imagePaths.length;
+        return image.length;
     }
 
     function showNotification(message) {
-        if (notify == undefined) return;
         if (message == undefined) return;
-        notify(message);
+        if (typeof notify === 'function')
+            notify(message);
     };
 
     return {
@@ -183,11 +188,11 @@ selektaImageManager = function() {
         setLastImage: setLastImage,
         evaluateBucketCall: evaluateBucketCall,
         getBucketQuantities: getBucketQuantities,
-        getTotalImages: getTotalImages,
         getBucketForCurrentImage: getBucketForCurrentImage,
-        getNextBucketIdx: getNextBucketIdx,
-        getCurrentBucketIdx: getCurrentBucketIdx, 
         clearBucket: clearBucket,
+        getTotalImages: getTotalImages,
+        getNextBucketIdx: getNextBucketIdx,
+        getCurrentBucketIdx: getCurrentBucketIdx,
         init: init
     };
 
