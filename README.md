@@ -11,7 +11,7 @@
   - Optimize image loading speed by somehow preloading a reduced-size image version
   - Write images to subfolders based on buckets
   - Allow filtering images by bucket number
-  - Allow for dynamically creating the number of buckets
+  - ~~Allow for dynamically creating the number of buckets~~
   - ~~Beautify notification bar (round edges, centered text, etc)~~
   - ~~Add the bucket engine to put images into containers~~
   - ~~Visualize the bucket engine~~

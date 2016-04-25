@@ -9,6 +9,7 @@ var selektaCore = function() {
     var shiftPressed = false;
     var ctrlPressed = false;
     var windowSize = undefined;
+    var activeFilter = undefined;
 
 
     function init() {
@@ -28,9 +29,9 @@ var selektaCore = function() {
     ipc.on('open-folder', function(event, rootDir) {
         console.log('open-folder event received');
         if (rootDir == undefined)
-            setFolder();
+            openFolder();
         else
-            setFolder(rootDir + '/sample-images');
+            openFolder(rootDir + '/sample-images');
     });
 
     function registerKeys() {
@@ -49,7 +50,7 @@ var selektaCore = function() {
                 toggleHelpWindow();
             } else if (event.which == 79) {
                 // o key
-                setFolder();
+                openFolder();
             } else if (event.which == 82) {
                 // r key
                 selektaImageManager.setFirstImage(windowSize);
@@ -58,10 +59,13 @@ var selektaCore = function() {
                 selektaImageManager.setLastImage(windowSize);
             } else if (event.which >= 49 && event.which <= 57) {
                 // 1-9 keys
-                addToBucket(event.which - 49);
+                evaluateBucketCall(event.which - 49);
             } else if (event.which == 65 ) {
                 // a key
                 addBucket();
+            } else if (event.which == 83 && ctrlPressed ) {
+                // Ctrl+s key
+                saveBuckets();
             } else if (event.which == 16 && !shiftPressed) {
                 // Shift key
                 shiftPressed = true;
@@ -93,7 +97,7 @@ var selektaCore = function() {
     function addBucket() {
         var nextId = selektaImageManager.getNextBucketIdx();
         if (nextId == undefined) {
-            notify("No more new buckets allowed.");
+            notify("No more new buckets allowed");
             return;
         }
         $("#bucket-container").append(
@@ -102,20 +106,40 @@ var selektaCore = function() {
             "<div class=\"bucket-quantity\">0</div></div>");
     }
 
-    function addToBucket(bucketId) {
+    function saveBuckets() {
+        quantities = selektaImageManager.getBucketQuantities();
+        totalBucketized = 0;
+        for (i = 0; i < quantities.length; i++)
+            totalBucketized += quantities[i];
+        if (totalBucketized == 0) {
+            notify("No images in buckets");
+            return;
+        }
+        ctrlPressed = false;
+        dialog.showOpenDialog({
+            properties: ['openDirectory'],
+            title: 'Select target folder for images'
+        }, function(imageDir) {
+            if (imageDir === undefined)
+                return;
+            selektaImageManager.saveBuckets(imageDir[0], function() {
+                updateView();
+            });
+        });
+    }
+
+    function evaluateBucketCall(bucketId) {
         animateCss('#bucket-' + bucketId + '.bucket i', 'bounce');
         if (shiftPressed) {
-            shiftPressed = false;
             quantities = selektaImageManager.getBucketQuantities();
             if (quantities[bucketId] == 0) {
                 notify('Cannot filter empty bucket');
                 return;
             }
-            console.log('filtering ' + bucketId);
+            activeFilter = selektaImageManager.filterBucket(bucketId);
         } else if (ctrlPressed) {
-            ctrlPressed = false;
             if ( selektaImageManager.getCurrentBucketIdx() < bucketId ) {
-                notify("Bucket not created yet.");
+                notify("Bucket not created yet");
                 return;
             }
             buttons = ['Yes', 'No'];
@@ -145,7 +169,13 @@ var selektaCore = function() {
         totalImages = selektaImageManager.getTotalImages();
         for (i = 0; i < quantities.length; i++) {
             $('#bucket-' + i + ' .bucket-quantity').empty();
-            $('#bucket-' + i).css('color', 'white');
+            if (activeFilter == undefined) {
+                $('#bucket-' + i).css('color', 'white');
+            } else if (activeFilter == i) {
+                $('#bucket-' + i).css('color', 'white');
+            } else {!
+                $('#bucket-' + i).css('color', '#222');
+            }
             $('#bucket-' + i + ' .bucket-quantity').append(quantities[i]);
             totalBucketized += quantities[i];
         }
@@ -179,11 +209,14 @@ var selektaCore = function() {
         helpOpen = !helpOpen;
     };
 
-    function setFolder(explicitFolder) {
+    function openFolder(explicitFolder) {
         if (explicitFolder === undefined) {
             dialog.showOpenDialog({
-                properties: ['openFile', 'openDirectory', 'multiSelections']
+                properties: ['openDirectory'],
+                title: 'Select new image folder'
             }, function(imageDir) {
+                if (imageDir === undefined)
+                    return;
                 selektaImageManager.setRootFolder(imageDir[0], windowSize, function() {
                     updateView(true);
                 });
