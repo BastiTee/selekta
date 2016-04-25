@@ -50,19 +50,7 @@ body {
     font-size: 80%;
     float: left;
 }
-#bucket-hover-0 {
-    padding-right: 5px;
-    float: left;
-}
-#bucket-hover-1 {
-    padding-right: 5px;
-    float: left;
-}
-#bucket-hover-2 {
-    padding-right: 5px;
-    float: left;
-}
-#bucket-hover-3 {
+.bucket {
     padding-right: 5px;
     float: left;
 }
@@ -86,7 +74,7 @@ body {
     display: none;
     color: white;
     position: absolute;
-    width: 50%;
+    width: 60%;
     height: 55%;
     margin: 0 auto;
     left: 0;

@@ -2,10 +2,12 @@ selektaImageManager = function() {
     const imsize = require('image-size');
     const walk = require('walk');
     const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg)$', 'i');
+    const maxBuckets = 9;
 
     var imagePaths = [];
-    var currImageIdx = 0;
     var currImagePath = '';
+    var currImageIdx = 0;
+    var currBucketIdx = 0;
     var notify = undefined;
     var buckets = [];
 
@@ -15,10 +17,27 @@ selektaImageManager = function() {
     };
 
     var resetBuckets = function() {
-        for (i = 0; i < 4; i++) {
-            buckets[i] = [];
-        }
+        buckets = [];
+        currBucketIdx = 0;
     };
+
+    var clearBucket = function(bucketId) {
+        if (bucketId == undefined)
+            return;
+        buckets[bucketId] = [];
+    }
+
+    var getNextBucketIdx = function () {
+        if (currBucketIdx == maxBuckets)
+            return undefined;
+        buckets[currBucketIdx] = [];
+        currBucketIdx++;
+        return currBucketIdx - 1;
+    };
+
+    var getCurrentBucketIdx = function () {
+        return currBucketIdx - 1;  
+    }
 
     var setRootFolder = function(rootFolder, windowSize, cb) {
         if (rootFolder == undefined) {
@@ -130,7 +149,6 @@ selektaImageManager = function() {
                 buckets[bucketId].push(currImagePath);
         }
 
-        // print for debugging
         for (i = 0; i < buckets.length; i++) {
             console.log('  [' + (i + 1) + ']');
             for (j = 0; j < buckets[i].length; j++) {
@@ -167,6 +185,9 @@ selektaImageManager = function() {
         getBucketQuantities: getBucketQuantities,
         getTotalImages: getTotalImages,
         getBucketForCurrentImage: getBucketForCurrentImage,
+        getNextBucketIdx: getNextBucketIdx,
+        getCurrentBucketIdx: getCurrentBucketIdx, 
+        clearBucket: clearBucket,
         init: init
     };
 

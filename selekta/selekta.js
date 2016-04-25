@@ -5,6 +5,7 @@ var selekta = function() {
     const dialog = require('electron').remote.dialog;
     var helpOpen = false;
     var shiftPressed = false;
+    var ctrlPressed = false;
     var currentFilter = undefined;
     var windowSize = undefined;
     const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
@@ -54,24 +55,22 @@ var selekta = function() {
             } else if (event.which == 70) {
                 // f key
                 selektaImageManager.setLastImage(windowSize);
-            } else if (event.which == 49) {
-                // 1 key
-                handleBucketKey(0);
-            } else if (event.which == 50) {
-                // 2 key
-                handleBucketKey(1);
-            } else if (event.which == 51) {
-                // 3 key
-                handleBucketKey(2);
-            } else if (event.which == 52) {
-                // 4 key
-                handleBucketKey(3);
+            } else if (event.which >= 49 && event.which <= 57) {
+                // 1-9 keys
+                handleBucketKey(event.which - 49);
+            } else if (event.which == 65 ) {
+                // a key 
+                addBucket();
             } else if (event.which == 16 && !shiftPressed) {
                 // Shift key
                 shiftPressed = true;
                 console.log('shift pressed');
+            } else if (event.which == 17 && !ctrlPressed) {
+                // CTRL key
+                ctrlPressed = true;
+                console.log('ctrl pressed');
             } else {
-                //   console.log(event.which + ' not supported.');
+                console.log(event.which + ' not supported.');
             }
             updateData();
         }
@@ -80,6 +79,9 @@ var selekta = function() {
             if (event.which == 16) {
                 console.log('shift released');
                 shiftPressed = false;
+            } else if (event.which == 17) {
+                console.log('CTRL released');
+                ctrlPressed = false;
             }
         }
 
@@ -87,16 +89,46 @@ var selekta = function() {
         $('#help-window').click(toggleHelpWindow);
     };
 
+    function addBucket() {
+        var nextId = selektaImageManager.getNextBucketIdx();
+        if (nextId == undefined) {
+            notify("No more new buckets allowed.");
+            return;
+        }
+
+        $("#bucket-container").append(
+            "<div id=\"bucket-" + nextId + "\" class=\"bucket\" >" +
+            "<i class=\"fa fa-folder\"></i>" +
+            "<div class=\"bucket-quantity\">0</div></div>");
+    }
+
     function handleBucketKey(bucketId) {
-        $('#bucket-hover-' + bucketId + ' i').animateCss('bounce');
+        $('#bucket-' + bucketId + '.bucket i').animateCss('bounce');
         if (shiftPressed) {
+            shiftPressed = false;
             quantities = selektaImageManager.getBucketQuantities();
             if (quantities[bucketId] == 0) {
                 notify('Cannot filter empty bucket');
                 return;
             }
-
             console.log('filtering ' + bucketId);
+        } else if (ctrlPressed) {
+            ctrlPressed = false;
+            if ( selektaImageManager.getCurrentBucketIdx() < bucketId ) {
+                notify("Bucket not created yet.");
+                return;
+            }
+            buttons = ['Yes', 'No'];
+            dialog.showMessageBox({ type: 'question', buttons: buttons, 
+                message: 'Do you really want to empty bucket ' + (bucketId+1) + '?',
+                noLink: true }, 
+                function (buttonIndex) {
+                    if ( buttons[buttonIndex] == "Yes" ) {
+                        selektaImageManager.clearBucket(bucketId);
+                        updateData();
+                    }
+            });
+            
         } else {
             selektaImageManager.evaluateBucketCall(bucketId);
         }
@@ -104,19 +136,22 @@ var selekta = function() {
 
     };
 
-    function updateData() {
+    function updateData(reset) {
+        if (reset === true) {
+            $('#bucket-container').empty();
+        }
         quantities = selektaImageManager.getBucketQuantities();
         totalBucketized = 0;
         totalImages = selektaImageManager.getTotalImages();
         for (i = 0; i < quantities.length; i++) {
-            $('#bucket-hover-' + i + ' .bucket-quantity').empty();
-            $('#bucket-hover-' + i).css('color', 'white');
-            $('#bucket-hover-' + i + ' .bucket-quantity').append(quantities[i]);
+            $('#bucket-' + i + ' .bucket-quantity').empty();
+            $('#bucket-' + i).css('color', 'white');
+            $('#bucket-' + i + ' .bucket-quantity').append(quantities[i]);
             totalBucketized += quantities[i];
         }
         bucketForImage = selektaImageManager.getBucketForCurrentImage();
         if (bucketForImage != undefined) {
-            $('#bucket-hover-' + bucketForImage[0]).css('color', 'lightblue');
+            $('#bucket-' + bucketForImage[0]).css('color', 'lightblue');
         }
         $('#total-images .bucket-quantity').empty();
         $('#total-images .bucket-quantity').append(totalBucketized + '/' + totalImages);
@@ -155,13 +190,13 @@ var selekta = function() {
                 properties: ['openFile', 'openDirectory', 'multiSelections']
             }, function(imageDir) {
                 selektaImageManager.setRootFolder(imageDir[0], windowSize, function() {
-                    updateData();
+                    updateData(true);
                 });
 
             });
         } else {
             selektaImageManager.setRootFolder(explicitFolder, windowSize, function() {
-                updateData();
+                updateData(true);
             });
 
         }
