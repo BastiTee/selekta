@@ -1,100 +1,84 @@
-const $ = require('jQuery');
+const $ = require("jQuery");
 
 var selektaCore = function() {
-    const ipc = require('electron').ipcRenderer;
-    const dialog = require('electron').remote.dialog;
-    const animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+    require("./image-manager.js");
+    const ipc = require("electron").ipcRenderer;
+    const dialog = require("electron").remote.dialog;
+    const animationEnd = "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend";
 
     var helpOpen = false;
     var shiftPressed = false;
     var ctrlPressed = false;
-    var windowSize = undefined;
     var activeFilter = undefined;
 
+    var init = function () {
+         // register size listener
+        ipc.on("current-size", function(event, windowSize) {
+            selektaImageManager.setWindowSize(windowSize);
+        });
 
-    function init() {
-        $('#load-hover').hide();
-        registerKeys();
-        require('./image-manager.js');
+        // register open-folder request from main thread
+        ipc.on("open-folder", function(event, rootDir) {
+            if (rootDir == undefined)
+                openFolder();
+            else
+                openFolder(rootDir + "/sample-images");
+        });
+        registerKeyboardAndMouseEvents();
         selektaImageManager.init(notify);
     }
 
-    // register size listener
-    ipc.on('current-size', function(event, newWindowSize) {
-        console.log('current-size event received: ' + newWindowSize);
-        windowSize = newWindowSize;
-    });
+    function registerKeyboardAndMouseEvents() {
 
-    // register open-folder request from main thread
-    ipc.on('open-folder', function(event, rootDir) {
-        console.log('open-folder event received');
-        if (rootDir == undefined)
-            openFolder();
-        else
-            openFolder(rootDir + '/sample-images');
-    });
+        $("#help-hover").click(toggleHelpWindow);
+        $("#help-window").click(toggleHelpWindow);
 
-    function registerKeys() {
         document.body.addEventListener("keydown", keyDown);
         document.body.addEventListener("keyup", keyUp);
 
         function keyDown(event) {
-            if (event.which == 39) {
-                // Right arrow key
-                selektaImageManager.setNextImage(windowSize);
-            } else if (event.which == 37) {
-                // Left arrow key
-                selektaImageManager.setPreviousImage(windowSize);
-            } else if (event.which == 72) {
-                // h key
+            if (event.which == 39) { // Right arrow key
+                selektaImageManager.setNextImage();
+            } else if (event.which == 37) { // Left arrow key
+                selektaImageManager.setPreviousImage();
+            } else if (event.which == 72) { // h key
                 toggleHelpWindow();
-            } else if (event.which == 79) {
-                // o key
+            } else if (event.which == 79) { // o key
                 openFolder();
-            } else if (event.which == 82) {
-                // r key
-                selektaImageManager.setFirstImage(windowSize);
-            } else if (event.which == 70) {
-                // f key
-                selektaImageManager.setLastImage(windowSize);
-            } else if (event.which >= 49 && event.which <= 57) {
-                // 1-9 keys
-                evaluateBucketCall(event.which - 49);
-            } else if (event.which == 65 ) {
-                // a key
-                addBucket();
-            } else if (event.which == 83 && ctrlPressed ) {
-                // Ctrl+s key
-                saveBuckets();
-            } else if (event.which == 16 && !shiftPressed) {
-                // Shift key
+            } else if (event.which == 82) { // r key
+                selektaImageManager.setFirstImage();
+            } else if (event.which == 70) { // f key
+                selektaImageManager.setLastImage();
+            } else if (event.which >= 49 && event.which <= 57) { // 1-9 keys
+                handleOnBucket(event.which - 49);
+            } else if (event.which == 65 ) { // a key
+                handleAddBucket();
+            } else if (event.which == 83 && ctrlPressed ) { // Ctrl+S key
+                handleSaveBuckets();
+            } else if (event.which == 16 && !shiftPressed) { // Shift key
                 shiftPressed = true;
-                console.log('shift pressed');
-            } else if (event.which == 17 && !ctrlPressed) {
-                // CTRL key
+                console.log("shift pressed");
+            } else if (event.which == 17 && !ctrlPressed) { // Ctrl key
                 ctrlPressed = true;
-                console.log('ctrl pressed');
+                console.log("ctrl pressed");
             } else {
-                console.log(event.which + ' not supported.');
+                // console.log(event.which + " not supported.");
             }
-            updateView();
-        }
+            refreshView();
+        };
 
         function keyUp(event) {
             if (event.which == 16) {
-                console.log('shift released');
+                console.log("shift released");
                 shiftPressed = false;
             } else if (event.which == 17) {
-                console.log('CTRL released');
+                console.log("ctrl released");
                 ctrlPressed = false;
             }
-        }
-
-        $('#help-hover').click(toggleHelpWindow);
-        $('#help-window').click(toggleHelpWindow);
+        };
     };
 
-    function addBucket() {
+    function handleAddBucket() {
         var nextId = selektaImageManager.getNextBucketIdx();
         if (nextId == undefined) {
             notify("No more new buckets allowed");
@@ -106,34 +90,34 @@ var selektaCore = function() {
             "<div class=\"bucket-quantity\">0</div></div>");
     }
 
-    function saveBuckets() {
-        quantities = selektaImageManager.getBucketQuantities();
-        totalBucketized = 0;
-        for (i = 0; i < quantities.length; i++)
-            totalBucketized += quantities[i];
+    function handleSaveBuckets() {
+        var bucketSizes = selektaImageManager.getBucketQuantities();
+        var totalBucketized = 0;
+        for (i = 0; i < bucketSizes.length; i++)
+            totalBucketized += bucketSizes[i];
         if (totalBucketized == 0) {
             notify("No images in buckets");
             return;
         }
         ctrlPressed = false;
         dialog.showOpenDialog({
-            properties: ['openDirectory'],
-            title: 'Select target folder for images'
+            properties: ["openDirectory"],
+            title: "Select target folder for images"
         }, function(imageDir) {
             if (imageDir === undefined)
                 return;
-            selektaImageManager.saveBuckets(imageDir[0], function() {
-                updateView();
+            selektaImageManager.handleSaveBuckets(imageDir[0], function() {
+                refreshView();
             });
         });
     }
 
-    function evaluateBucketCall(bucketId) {
-        animateCss('#bucket-' + bucketId + '.bucket i', 'bounce');
+    function handleOnBucket(bucketId) {
+        animateCss("#bucket-" + bucketId + ".bucket i", "bounce");
         if (shiftPressed) {
-            quantities = selektaImageManager.getBucketQuantities();
-            if (quantities[bucketId] == 0) {
-                notify('Cannot filter empty bucket');
+            var bucketSizes = selektaImageManager.getBucketQuantities();
+            if (bucketSizes[bucketId] == 0) {
+                notify("Cannot filter empty bucket");
                 return;
             }
             activeFilter = selektaImageManager.filterBucket(bucketId);
@@ -142,57 +126,56 @@ var selektaCore = function() {
                 notify("Bucket not created yet");
                 return;
             }
-            buttons = ['Yes', 'No'];
-            dialog.showMessageBox({ type: 'question', buttons: buttons,
-                message: 'Do you really want to empty bucket ' + (bucketId+1) + '?',
+            dialog.showMessageBox({ type: "question", buttons: ["Yes", "No"],
+                message: "Do you really want to empty bucket " + (bucketId+1) + "?",
                 noLink: true },
                 function (buttonIndex) {
                     if ( buttons[buttonIndex] == "Yes" ) {
                         selektaImageManager.clearBucket(bucketId);
-                        updateView();
+                        refreshView();
                     }
             });
 
         } else {
             selektaImageManager.addCurrentImageToBucket(bucketId);
         }
-        updateView();
+        refreshView();
 
     };
 
-    function updateView(reset) {
-        if (reset === true) {
-            $('#bucket-container').empty();
+    function refreshView(reset) {
+        if (reset == true) {
+            $("#bucket-container").empty();
         }
-        quantities = selektaImageManager.getBucketQuantities();
-        totalBucketized = 0;
-        totalImages = selektaImageManager.getTotalImages();
-        for (i = 0; i < quantities.length; i++) {
-            $('#bucket-' + i + ' .bucket-quantity').empty();
+        var bucketSizes = selektaImageManager.getBucketQuantities();
+        var totalImages = selektaImageManager.getTotalImages();
+        var totalBucketized = 0;
+        for (i = 0; i < bucketSizes.length; i++) {
+            $("#bucket-" + i + " .bucket-quantity").empty();
             if (activeFilter == undefined) {
-                $('#bucket-' + i).css('color', 'white');
+                $("#bucket-" + i).css("color", "white");
             } else if (activeFilter == i) {
-                $('#bucket-' + i).css('color', 'white');
-            } else {!
-                $('#bucket-' + i).css('color', '#222');
+                $("#bucket-" + i).css("color", "white");
+            } else {
+                $("#bucket-" + i).css("color", "#222");
             }
-            $('#bucket-' + i + ' .bucket-quantity').append(quantities[i]);
-            totalBucketized += quantities[i];
+            $("#bucket-" + i + " .bucket-quantity").append(bucketSizes[i]);
+            totalBucketized += bucketSizes[i];
         }
-        bucketForImage = selektaImageManager.getBucketForCurrentImage();
+        var bucketForImage = selektaImageManager.getBucketForCurrentImage();
         if (bucketForImage != undefined) {
-            $('#bucket-' + bucketForImage[0]).css('color', 'lightblue');
+            $("#bucket-" + bucketForImage[0]).css("color", "lightblue");
         }
-        $('#total-images .bucket-quantity').empty();
-        $('#total-images .bucket-quantity').append(totalBucketized + '/' + totalImages);
+        $("#total-images .bucket-quantity").empty();
+        $("#total-images .bucket-quantity").append(totalBucketized + "/" + totalImages);
     };
 
     function animateCss( elementId, animationName, hide) {
         if (!hide)
             $(elementId).show();
-        $(elementId).addClass('animated ' + animationName).one(animationEnd,
+        $(elementId).addClass("animated " + animationName).one(animationEnd,
             function() {
-                $(elementId).removeClass('animated ' + animationName);
+                $(elementId).removeClass("animated " + animationName);
                 if (hide)
                     $(elementId).hide();
             });
@@ -200,11 +183,11 @@ var selektaCore = function() {
 
     function toggleHelpWindow() {
         if (helpOpen) {
-            animateCss('#help-hover','bounce');
-            animateCss('#help-window','slideOutDown', true);
+            animateCss("#help-hover","bounce");
+            animateCss("#help-window","slideOutDown", true);
         } else {
-            animateCss('#help-hover','bounce');
-            animateCss('#help-window','slideInUp', false);
+            animateCss("#help-hover","bounce");
+            animateCss("#help-window","slideInUp", false);
         }
         helpOpen = !helpOpen;
     };
@@ -212,33 +195,31 @@ var selektaCore = function() {
     function openFolder(explicitFolder) {
         if (explicitFolder === undefined) {
             dialog.showOpenDialog({
-                properties: ['openDirectory'],
-                title: 'Select new image folder'
+                properties: ["openDirectory"],
+                title: "Select new image folder"
             }, function(imageDir) {
                 if (imageDir === undefined)
                     return;
                 selektaImageManager.setImageFolder(imageDir[0], function() {
-                    updateView(true);
+                    refreshView(true);
                 });
             });
         } else {
             selektaImageManager.setImageFolder(explicitFolder, function() {
-                updateView(true);
+                refreshView(true);
             });
         }
     };
 
     function notify(message) {
-        $('#notification').text(message);
-        $('#notification-box').show();
-        $('#notification-box').addClass('animated fadeIn').one(
+        $("#notification").text(message);
+        $("#notification-box").show();
+        $("#notification-box").addClass("animated fadeIn").one(
             animationEnd,
             function() {
-                $('#notification-box').removeClass('animated fadeIn');
+                $("#notification-box").removeClass("animated fadeIn");
                 setTimeout(function() {
-
-                    $('#notification-box').hide();
-
+                    $("#notification-box").hide();
                 }, 1000);
             });
     };

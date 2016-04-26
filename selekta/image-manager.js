@@ -1,10 +1,10 @@
 selektaImageManager = function() {
-    const imsize = require('image-size');
-    const walk = require('walk');
-    const path = require('path');
-    const fs = require('fs');
+    const imsize = require("image-size");
+    const walk = require("walk");
+    const path = require("path");
+    const fs = require("fs");
 
-    const supportedFileSuffixes = new RegExp('.*\\.(jpg|jpeg|png|gif)$', 'i');
+    const supportedFileSuffixes = new RegExp(".*\\.(jpg|jpeg|png|gif)$", "i");
     const maxBuckets = 9;
 
     var images = [];
@@ -26,6 +26,10 @@ selektaImageManager = function() {
         resetBuckets();
     };
 
+    var setWindowSize = function(windowSize) {
+        currWindowSize = windowSize;
+    };
+
     var setImageFolder = function(rootFolder, cb) {
         if (rootFolder == undefined)
             return;
@@ -34,36 +38,32 @@ selektaImageManager = function() {
             followLinks: false
         });
 
-        walker.on('file', function(root, stat, next) {
+        walker.on("file", function(root, stat, next) {
             if (stat.name.match(supportedFileSuffixes)) {
-                images.push(root + '/' + stat.name);
+                images.push(root + "/" + stat.name);
             }
             next();
         });
-        walker.on('end', function() {
+        walker.on("end", function() {
             setImage(0);
             resetBuckets();
-            if (typeof cb === 'function' ) cb();
+            if (typeof cb === "function" ) cb();
         });
     };
 
-    var setFirstImage = function(windowSize) {
-        currWindowSize = windowSize;
+    var setFirstImage = function() {
         setImage(-1);
     };
 
-    var setLastImage = function(windowSize) {
-        currWindowSize = windowSize;
+    var setLastImage = function() {
         setImage(images.length);
     };
 
-    var setPreviousImage = function(windowSize) {
-        currWindowSize = windowSize;
+    var setPreviousImage = function() {
         setImage(currImageIdx - 1);
     };
 
-    var setNextImage = function(windowSize) {
-        currWindowSize = windowSize;
+    var setNextImage = function() {
         setImage(currImageIdx + 1);
     };
 
@@ -179,6 +179,7 @@ selektaImageManager = function() {
 
     return {
         init: init,
+        setWindowSize: setWindowSize,
         setImageFolder: setImageFolder,
         setFirstImage: setFirstImage,
         setLastImage: setLastImage,
@@ -218,23 +219,23 @@ selektaImageManager = function() {
             searchScope = buckets[bucketFilter];
         currImageIdx = newImageIdx;
         if (currImageIdx < 0) {
-            showNotification('Reached first image');
+            showNotification("Reached first image");
         } else if (currImageIdx >= searchScope.length) {
-            showNotification('Reached last image');
+            showNotification("Reached last image");
         }
         currImageIdx = currImageIdx > 0 ? currImageIdx < searchScope.length - 1 ?
             currImageIdx : searchScope.length - 1 : 0;
         currImagePath = searchScope[currImageIdx];
 
-        $('#load-hover').show();
+        $("#load-hover").show();
         imsize(currImagePath, function(e, dimensions) {
-            $('#main-image').load(function() {
-                $('#load-hover').hide();
+            $("#main-image").load(function() {
+                $("#load-hover").hide();
             })
             getAspectRatio(dimensions.width, dimensions.height);
         });
 
-        $('#main-image').attr("src", currImagePath);
+        $("#main-image").attr("src", currImagePath);
     };
 
     function getAspectRatio(picHeight, picWidth) {
@@ -242,32 +243,33 @@ selektaImageManager = function() {
         var screenRatio = currWindowSize[0] / currWindowSize[1];
 
         if (picRatio < screenRatio) {
-            $('#main-image').css({
-                width: '100%',
-                height: 'auto',
-                opacity: '1'
+            $("#main-image").css({
+                width: "100%",
+                height: "auto",
+                opacity: "1"
             });
         } else {
-            $('#main-image').css({
-                width: 'auto',
-                height: '100%',
-                opacity: '1'
+            $("#main-image").css({
+                width: "auto",
+                height: "100%",
+                opacity: "1"
             });
         }
     };
 
     function showNotification(message) {
         if (message == undefined) return;
-        if (typeof notifyCallback === 'function')
+        if (typeof notifyCallback === "function")
             notifyCallback(message);
     };
 
     function printBuckets() {
-        console.log('- BUCKETS ----------------------------');
+        return; // comment for development
+        console.log("- BUCKETS ----------------------------");
         for (i = 0; i < buckets.length; i++) {
-            console.log('  [B#' + (i + 1) + ']');
+            console.log("  [B#" + (i + 1) + "]");
             for (j = 0; j < buckets[i].length; j++) {
-                console.log('      [I#' + j + '] ' +
+                console.log("      [I#" + j + "] " +
                     buckets[i][j].split(/[\\/]/).pop());
             }
         }
