@@ -154,7 +154,7 @@ var selektaCore = function() {
             });
 
         } else {
-            selektaImageManager.evaluateBucketCall(bucketId);
+            selektaImageManager.addCurrentImageToBucket(bucketId);
         }
         updateView();
 
@@ -217,12 +217,12 @@ var selektaCore = function() {
             }, function(imageDir) {
                 if (imageDir === undefined)
                     return;
-                selektaImageManager.setRootFolder(imageDir[0], windowSize, function() {
+                selektaImageManager.setImageFolder(imageDir[0], function() {
                     updateView(true);
                 });
             });
         } else {
-            selektaImageManager.setRootFolder(explicitFolder, windowSize, function() {
+            selektaImageManager.setImageFolder(explicitFolder, function() {
                 updateView(true);
             });
         }
