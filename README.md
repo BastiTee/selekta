@@ -1,9 +1,12 @@
 # selekta
 > A tiny tool to browse and bucketize images - for keyboard ninjas only
 
+![build](https://img.shields.io/badge/build-probably%20broken-orange.svg)
+![version](https://img.shields.io/badge/version-*-lightgrey.svg)
+
 Selekta is yet another image browser. Its only purpose is to quickly skim through an image folder and put the images into buckets, e.g., _pictures-of-me/pictures-of-bob/pictures-of-john_ or _awesome/mediocre/trash_ or _people/animals/none_ - you name it! Navigation is keyboard-only and features a very small command-set to get the job done quickly.
 
-Selekta is written in JavaScript and based upon [Electron](electron.atom.io) for self-educational purposes. 
+Selekta is a self-educational project to get the hang of  [JavaScript](http://s2.quickmeme.com/img/c2/c27aa8c34c875f015ed015e075a703ffa6e5f7063186a8573d82931ba4928c76.jpg) and  [Electron](electron.atom.io). 
 
 ![Screenshot 1](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/001_a.png)
 ![Screenshot 2](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/001_b.png)
