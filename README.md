@@ -5,6 +5,9 @@ Selekta is yet another image browser. Its only purpose is to quickly skim throug
 
 Selekta is written in JavaScript and based upon [Electron](electron.atom.io) for self-educational purposes. 
 
+![Screenshot 1](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/001_a.png)
+![Screenshot 2](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/001_b.png)
+
 ## Startup
 - Install dependencies with `npm install`
 - Start application with `npm start`
