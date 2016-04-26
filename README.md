@@ -31,7 +31,7 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 *Bugs*
 
  - [ ] Resizing fails on squared images
- - [ ] Resizing breaks when repedately changing the window size 
+ - [ ] Resizing breaks when repeatedly changing the window size 
  - [ ] Progess icon shows up delayed after key was pressed
  - [ ] Progress icon hangs on startup sometimes
  - [ ] When hammering on h-key for help, help breaks
