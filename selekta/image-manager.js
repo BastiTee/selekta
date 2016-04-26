@@ -203,29 +203,25 @@ selektaImageManager = function() {
     };
 
     function saveBuckets(targetFolder, callback) {
-        console.log(targetFolder);
+
+        function handleBucket( bucket, bucketId ) {
+            if (bucket.length == 0)
+                return;
+            var targetBucketFolder = path.join(targetFolder, bucketId.toString())
+            fs.mkdir(targetBucketFolder, function() {
+                for (i = 0; i < bucket.length; i++) {
+                    var srcFilename = bucket[i].split(/[\\/]/).pop();
+                    var targetPath = path.join(targetBucketFolder, srcFilename);
+                    console.log(bucket[i] + " >> " + targetPath);
+                    fs.createReadStream(bucket[i]).pipe(fs.createWriteStream(targetPath))
+                }
+            });
+        }
 
         for (i = 0; i < buckets.length; i++) {
-            if (buckets[i].length == 0)
-                continue;
-
-            for (j = 0; j < buckets[i].length; j++) {
-                var srcFile = buckets[i][j];
-                var filename = srcFile.split(/[\\/]/).pop();
-                var targetDir = path.join(targetFolder, i.toString());
-                fs.mkdir(targetDir, function(srcFile) {
-                    var targetPath = path.join(targetDir, filename);
-                    fs.createReadStream(srcFile).pipe(
-                        fs.createWriteStream(targetPath));
-                    console.log(">>> " + targetPath);
-                });
-
-            }
-
-//
-
-
+            handleBucket( buckets[i], i );
         }
+        notify("Writing buckets to folder was successful");
     };
 
     function getTotalImages() {

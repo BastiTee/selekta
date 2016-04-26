@@ -9,8 +9,8 @@
 ## To-Dos
 - Tasks
   - Optimize image loading speed by somehow preloading a reduced-size image version
-  - Write images to subfolders based on buckets
-  - Allow filtering images by bucket number
+  - ~~Write images to subfolders based on buckets~~
+  - ~~Allow filtering images by bucket number~~
   - ~~Allow for dynamically creating the number of buckets~~
   - ~~Beautify notification bar (round edges, centered text, etc)~~
   - ~~Add the bucket engine to put images into containers~~
@@ -20,6 +20,8 @@
   - Resizing fails on squared images
   - Progess icon shows up delayed after key was pressed
   - Progress icon hangs on startup sometimes
+  - When hammering on h-key for help, help breaks
+  - Shift/Ctrl keys are not always reset correctly
 
 - Packaging
   - Create a native container build for windows
