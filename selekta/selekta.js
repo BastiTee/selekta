@@ -26,7 +26,7 @@ var selektaCore = function() {
         });
         registerKeyboardAndMouseEvents();
         selektaImageManager.init(notify);
-    }
+    };
 
     function registerKeyboardAndMouseEvents() {
 
@@ -212,15 +212,19 @@ var selektaCore = function() {
     };
 
     function notify(message) {
-        $("#notification").text(message);
-        $("#notification-box").show();
-        $("#notification-box").addClass("animated fadeIn").one(
+        var pId = "notification-" + Date.now();
+        $("#notification-box").prepend(
+            "<p id=\""+pId+"\" class=\"notification animated zoomIn\">"+message+"</p>");
+        $("#"+pId).one(
             animationEnd,
             function() {
-                $("#notification-box").removeClass("animated fadeIn");
                 setTimeout(function() {
-                    $("#notification-box").hide();
-                }, 1000);
+                    $("#"+pId).removeClass("zoomIn").
+                    addClass("zoomOut").one(animationEnd,
+                        function() {
+                            $("#"+pId).remove();
+                        });
+                }, 500);
             });
     };
 
