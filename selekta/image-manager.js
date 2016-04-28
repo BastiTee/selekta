@@ -68,7 +68,7 @@ selektaImageManager = function() {
         setImage(currImageIdx + 1);
     };
 
-    function addCurrentImageToBucket (bucketId) {
+    var addCurrentImageToBucket = function(bucketId) {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
@@ -87,7 +87,7 @@ selektaImageManager = function() {
         printBuckets();
     };
 
-    function getBucketForCurrentImage() {
+    var getBucketForCurrentImage = function() {
         for (i = 0; i < buckets.length; i++) {
             for (j = 0; j < buckets[i].length; j++) {
                 if (buckets[i][j] === currImagePath) {
@@ -110,7 +110,7 @@ selektaImageManager = function() {
     }
 
 
-    function getBucketQuantities() {
+    var getBucketQuantities = function() {
         lengths = [];
         for (i = 0; i < buckets.length; i++) {
             lengths.push(buckets[i].length);
@@ -118,7 +118,7 @@ selektaImageManager = function() {
         return lengths;
     };
 
-    function getTotalImages() {
+    var getTotalImages = function() {
         return images.length;
     };
 
@@ -135,7 +135,7 @@ selektaImageManager = function() {
         return currBucketIdx - 1;
     };
 
-    function filterBucket(bucketId) {
+    var filterBucket = function(bucketId) {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
@@ -155,7 +155,7 @@ selektaImageManager = function() {
         return bucketFilter;
     }
 
-    function saveBuckets(targetFolder) {
+    var saveBuckets = function(targetFolder) {
 
         function handleBucket( bucket, bucketId ) {
             if (bucket.length == 0)

@@ -4,7 +4,6 @@ var selektaCore = function() {
     require("./image-manager.js");
     const ipc = require("electron").ipcRenderer;
     const dialog = require("electron").remote.dialog;
-    const animationEnd = "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend";
 
     var helpOpen = false;
     var shiftPressed = false;
@@ -13,7 +12,7 @@ var selektaCore = function() {
 
     var init = function () {
          // register size listener
-        ipc.on("current-size", function(event, windowSize) {
+         ipc.on("current-size", function(event, windowSize) {
             selektaImageManager.setWindowSize(windowSize);
         });
 
@@ -128,7 +127,8 @@ var selektaCore = function() {
                 notify("Bucket does not exist");
                 return;
             }
-            dialog.showMessageBox({ type: "question", buttons: ["Yes", "No"],
+            var buttons = ["Yes", "No"];
+            dialog.showMessageBox({ type: "question", buttons: buttons,
                 message: "Do you really want to empty bucket " + (bucketId+1) + "?",
                 noLink: true },
                 function (buttonIndex) {
@@ -178,7 +178,7 @@ var selektaCore = function() {
     function animateCss( elementId, animationName, hide) {
         if (!hide)
             $(elementId).show();
-        $(elementId).addClass("animated " + animationName).one(animationEnd,
+        $(elementId).addClass("animated " + animationName).one("webkitAnimationEnd",
             function() {
                 $(elementId).removeClass("animated " + animationName);
                 if (hide)
@@ -221,11 +221,11 @@ var selektaCore = function() {
         $("#notification-box").prepend(
             "<p id=\""+pId+"\" class=\"notification animated zoomIn\">"+message+"</p>");
         $("#"+pId).one(
-            animationEnd,
+            "webkitAnimationEnd",
             function() {
                 setTimeout(function() {
                     $("#"+pId).removeClass("zoomIn").
-                    addClass("zoomOut").one(animationEnd,
+                    addClass("zoomOut").one("webkitAnimationEnd",
                         function() {
                             $("#"+pId).remove();
                         });
