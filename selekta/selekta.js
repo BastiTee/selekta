@@ -1,7 +1,10 @@
 const $ = require("jQuery");
 
 var selektaCore = function() {
+    "use strict"; // e.g., don't use undeclared variables
+
     require("./image-manager.js");
+
     const ipc = require("electron").ipcRenderer;
     const dialog = require("electron").remote.dialog;
 
@@ -101,7 +104,7 @@ var selektaCore = function() {
     function handleSaveBuckets() {
         var bucketSizes = selektaImageManager.getBucketQuantities();
         var totalBucketized = 0;
-        for (i = 0; i < bucketSizes.length; i++)
+        for (var i = 0; i < bucketSizes.length; i++)
             totalBucketized += bucketSizes[i];
         if (totalBucketized == 0) {
             notify("No images in buckets");
@@ -169,7 +172,7 @@ var selektaCore = function() {
         var bucketSizes = selektaImageManager.getBucketQuantities();
         var totalImages = selektaImageManager.getTotalImages();
         var totalBucketized = 0;
-        for (i = 0; i < bucketSizes.length; i++) {
+        for (var i = 0; i < bucketSizes.length; i++) {
             $("#bucket-" + i + " .bucket-quantity").empty();
             if (activeFilter == undefined) {
                 $("#bucket-" + i).css("color", "white");

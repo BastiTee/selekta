@@ -30,19 +30,25 @@ selektaImageManager = function() {
     };
 
     var setImageFolder = function(rootFolder, recursive, cb) {
-        if (recursive === false) {
-            console.log("Not implemented yet");
-        }
         if (rootFolder == undefined)
             return;
+        // normalize folder string
+        rootFolder = rootFolder.split(/[\\/]/).join("/") + "/";
+        if (rootFolder.endsWith("/"))
+            rootFolder = rootFolder.substring(0, rootFolder.length - 1);
+        // store folder depth
+        var rootSubDirs = rootFolder.split(/[\\/]/).length;
+
         images = [];
         var walker = walk.walk(rootFolder, {
-            followLinks: false,
-            recursive: false
+            followLinks: false
         });
         walker.on("file", function(root, stat, next) {
+            var rootd = root.split(/[\\/]/).length;
+            var depth = rootd - rootSubDirs;
             if (stat.name.match(supportedFileSuffixes)) {
-                images.push(root + "/" + stat.name);
+                if (recursive || depth === 0)
+                    images.push(root + "/" + stat.name);
             }
             next();
         });
@@ -51,7 +57,7 @@ selektaImageManager = function() {
                 setImage(0);
                 resetBuckets();
             }
-            if (typeof cb === 'function') cb(images.length);
+            if (typeof cb === "function") cb(images.length);
         });
     };
 
@@ -90,7 +96,7 @@ selektaImageManager = function() {
     };
 
     var getBucketForCurrentImage = function() {
-        for (i = 0; i < buckets.length; i++) {
+        for (var i = 0; i < buckets.length; i++) {
             for (j = 0; j < buckets[i].length; j++) {
                 if (buckets[i][j] === currImagePath) {
                     return [i, j];
