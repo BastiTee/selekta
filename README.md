@@ -21,6 +21,7 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 *Tasks*
 
  - [ ] Optimize image loading speed by somehow preloading a reduced-size image version
+ - [ ] Implement non-recursive folder walking
  - [x] Write images to subfolders based on buckets
  - [x] Allow filtering images by bucket number
  - [x] Allow for dynamically creating the number of buckets
@@ -32,10 +33,10 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
  - [ ] Resizing fails on squared images
  - [ ] Resizing breaks when repeatedly changing the window size
- - [ ] Progess icon shows up delayed after key was pressed
+ - [X] Progess icon shows up delayed after key was pressed
  - [ ] Progress icon hangs on startup sometimes
  - [ ] When hammering on h-key for help, help breaks
- - [ ] Shift/Ctrl keys are not always reset correctly
+ - [X] Shift/Ctrl keys are not always reset correctly
 
 *Packaging*
 

@@ -1,4 +1,6 @@
 selektaImageManager = function() {
+    "use strict";
+
     const imsize = require("image-size");
     const walk = require("walk");
     const path = require("path");
@@ -15,14 +17,11 @@ selektaImageManager = function() {
     var bucketFilter = undefined;
     var currWindowSize = undefined;
 
-    var notify = undefined;
-
     /***************************************************************
      * PUBLIC                                                      *
      ***************************************************************/
 
-    var init = function(cb) {
-        notify = (typeof cb === 'function') ? cb : function() {};
+    var init = function() {
         resetBuckets();
     };
 
@@ -30,15 +29,17 @@ selektaImageManager = function() {
         currWindowSize = windowSize;
     };
 
-    var setImageFolder = function(rootFolder, cb) {
-        var cb = (typeof cb === 'function') ? cb : function() {};
+    var setImageFolder = function(rootFolder, recursive, cb) {
+        if (recursive === false) {
+            console.log("Not implemented yet");
+        }
         if (rootFolder == undefined)
             return;
         images = [];
         var walker = walk.walk(rootFolder, {
-            followLinks: false
+            followLinks: false,
+            recursive: false
         });
-
         walker.on("file", function(root, stat, next) {
             if (stat.name.match(supportedFileSuffixes)) {
                 images.push(root + "/" + stat.name);
@@ -46,33 +47,34 @@ selektaImageManager = function() {
             next();
         });
         walker.on("end", function() {
-            setImage(0);
-            resetBuckets();
-            cb();
+            if (images.length > 0) {
+                setImage(0);
+                resetBuckets();
+            }
+            if (typeof cb === 'function') cb(images.length);
         });
     };
 
     var setFirstImage = function() {
-        setImage(-1);
+        return setImage(-1);
     };
 
     var setLastImage = function() {
-        setImage(images.length);
+        return setImage(images.length);
     };
 
     var setPreviousImage = function() {
-        setImage(currImageIdx - 1);
+        return setImage(currImageIdx - 1);
     };
 
     var setNextImage = function() {
-        setImage(currImageIdx + 1);
+        return setImage(currImageIdx + 1);
     };
 
     var addCurrentImageToBucket = function(bucketId) {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
-            notify("Bucket does not exist");
             return;
         }
         var foundInBucket = getBucketForCurrentImage();
@@ -102,17 +104,15 @@ selektaImageManager = function() {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
-            notify("Bucket does not exist");
             return;
         }
         buckets[bucketId] = [];
         printBuckets();
-    }
-
+    };
 
     var getBucketQuantities = function() {
-        lengths = [];
-        for (i = 0; i < buckets.length; i++) {
+        var lengths = [];
+        for (var i = 0; i < buckets.length; i++) {
             lengths.push(buckets[i].length);
         }
         return lengths;
@@ -139,21 +139,22 @@ selektaImageManager = function() {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
-            notify("Bucket does not exist");
             return;
         }
 
         if (bucketFilter == bucketId) {
-            notify("Bucket filter disabled");
             bucketFilter = undefined;
             return bucketFilter;
         }
-        currImageBucketId = getBucketForCurrentImage()[0];
+        currImageBucketId = getBucketForCurrentImage();
+        if (currImageBucketId !== undefined )
+            currImageBucketId = currImageBucketId[0];
+
         bucketFilter = bucketId;
         if (currImageBucketId != bucketId)
             setImage(0);
         return bucketFilter;
-    }
+    };
 
     var saveBuckets = function(targetFolder) {
 
@@ -174,7 +175,6 @@ selektaImageManager = function() {
         for (i = 0; i < buckets.length; i++) {
             handleBucket( buckets[i], i );
         }
-        notify("Writing buckets to folder was successful");
     };
 
     return {
@@ -214,14 +214,15 @@ selektaImageManager = function() {
 
     function setImage(newImageIdx) {
 
-        searchScope = images;
+        var imagePos = "ANY";
+        var searchScope = images;
         if (bucketFilter != undefined)
             searchScope = buckets[bucketFilter];
         currImageIdx = newImageIdx;
         if (currImageIdx < 0) {
-            showNotification("Reached first image");
+            imagePos = "FIRST";
         } else if (currImageIdx >= searchScope.length) {
-            showNotification("Reached last image");
+            imagePos = "LAST";
         }
         currImageIdx = currImageIdx > 0 ? currImageIdx < searchScope.length - 1 ?
             currImageIdx : searchScope.length - 1 : 0;
@@ -236,6 +237,7 @@ selektaImageManager = function() {
         });
 
         $("#main-image").attr("src", currImagePath);
+        return imagePos;
     };
 
     function getAspectRatio(picHeight, picWidth) {

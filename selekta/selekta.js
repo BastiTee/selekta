@@ -9,6 +9,7 @@ var selektaCore = function() {
     var shiftPressed = false;
     var ctrlPressed = false;
     var activeFilter = undefined;
+    var lastImagePos = undefined;
 
     var init = function () {
          // register size listener
@@ -19,9 +20,9 @@ var selektaCore = function() {
         // register open-folder request from main thread
         ipc.on("open-folder", function(event, rootDir) {
             if (rootDir == undefined)
-                openFolder();
+                openFolder(false);
             else
-                openFolder(rootDir + "/sample-images");
+                openFolder(false, rootDir + "/sample-images");
         });
         registerKeyboardAndMouseEvents();
         selektaImageManager.init(notify);
@@ -36,18 +37,21 @@ var selektaCore = function() {
         document.body.addEventListener("keyup", keyUp);
 
         function keyDown(event) {
+            var imagePos = undefined;
             if (event.which == 39) { // Right arrow key
-                selektaImageManager.setNextImage();
+                imagePos = selektaImageManager.setNextImage();
             } else if (event.which == 37) { // Left arrow key
-                selektaImageManager.setPreviousImage();
+                imagePos = selektaImageManager.setPreviousImage();
             } else if (event.which == 72) { // h key
                 toggleHelpWindow();
-            } else if (event.which == 79) { // o key
-                openFolder();
+            } else if (event.which == 79 && shiftPressed) { // o key
+                openFolder(true);
+            } else if (event.which == 79 && !shiftPressed) { // shift+o key
+                openFolder(false);
             } else if (event.which == 82) { // r key
-                selektaImageManager.setFirstImage();
+                imagePos = selektaImageManager.setFirstImage();
             } else if (event.which == 70) { // f key
-                selektaImageManager.setLastImage();
+                imagePos = selektaImageManager.setLastImage();
             } else if (event.which >= 49 && event.which <= 57) { // 1-9 keys
                 handleOnBucket(event.which - 49);
             } else if (event.which == 65 ) { // a key
@@ -63,6 +67,11 @@ var selektaCore = function() {
             } else {
                 // console.log(event.which + " not supported.");
             }
+            if (imagePos === 'FIRST' && lastImagePos !== imagePos)
+                notify("Reached first image");
+            else if (imagePos === 'LAST' && lastImagePos !== imagePos)
+                notify("Reached last image");
+            lastImagePos = imagePos; // make sure we don't repeat
             refreshView();
         };
 
@@ -105,7 +114,7 @@ var selektaCore = function() {
         }, function(imageDir) {
             if (imageDir === undefined)
                 return;
-            selektaImageManager.handleSaveBuckets(imageDir[0], function() {
+            selektaImageManager.saveBuckets(imageDir[0], function() {
                 refreshView();
             });
         });
@@ -113,20 +122,26 @@ var selektaCore = function() {
 
     function handleOnBucket(bucketId) {
         animateCss("#bucket-" + bucketId + ".bucket i", "bounce");
-        if (shiftPressed) {
-            var bucketSizes = selektaImageManager.getBucketQuantities();
-            if (bucketSizes[bucketId] == 0) {
-                notify("Cannot filter empty bucket");
-                return;
-            }
-            activeFilter = selektaImageManager.filterBucket(bucketId);
-            if (activeFilter != undefined)
-                notify("Filter set to bucket #" + (activeFilter+1));
-        } else if (ctrlPressed) {
-            if ( selektaImageManager.getCurrentBucketIdx() < bucketId ) {
+        var bucketSizes = selektaImageManager.getBucketQuantities();
+        var currBucketIdx = selektaImageManager.getCurrentBucketIdx();
+        if (shiftPressed || ctrlPressed ) {
+            if ( currBucketIdx < bucketId ) {
                 notify("Bucket does not exist");
                 return;
             }
+            if (bucketSizes[bucketId] == 0) {
+                notify("Bucket is empty");
+                return;
+            }
+        }
+        if (shiftPressed) {
+            activeFilter = selektaImageManager.filterBucket(bucketId);
+            if (activeFilter == undefined)
+                notify("Bucket filter disabled");
+            else
+                notify("Filter set to bucket #" + (activeFilter+1));
+        } else if (ctrlPressed) {
+            ctrlPressed = false; // necessary bec. open dialog can swallow ctrl released
             var buttons = ["Yes", "No"];
             dialog.showMessageBox({ type: "question", buttons: buttons,
                 message: "Do you really want to empty bucket " + (bucketId+1) + "?",
@@ -137,7 +152,6 @@ var selektaCore = function() {
                         refreshView();
                     }
             });
-
         } else {
             selektaImageManager.addCurrentImageToBucket(bucketId);
             var newBucketSize = selektaImageManager.getBucketQuantities()[bucketId];
@@ -197,21 +211,28 @@ var selektaCore = function() {
         helpOpen = !helpOpen;
     };
 
-    function openFolder(explicitFolder) {
+    function openFolder(recursive, explicitFolder) {
         if (explicitFolder === undefined) {
+            shiftPressed = false;
             dialog.showOpenDialog({
                 properties: ["openDirectory"],
                 title: "Select new image folder"
             }, function(imageDir) {
                 if (imageDir === undefined)
                     return;
-                selektaImageManager.setImageFolder(imageDir[0], function() {
-                    refreshView(true);
+                selektaImageManager.setImageFolder(imageDir[0], recursive, function(imageCount) {
+                    if (imageCount <= 0)
+                        notify("Folder does not contain any images");
+                    else
+                        refreshView(true);
                 });
             });
         } else {
-            selektaImageManager.setImageFolder(explicitFolder, function() {
-                refreshView(true);
+            selektaImageManager.setImageFolder(explicitFolder, recursive, function(imageCount) {
+                if (imageCount <= 0)
+                    notify("Folder does not contain any images");
+                else
+                    refreshView(true);
             });
         }
     };
