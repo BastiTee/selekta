@@ -152,7 +152,6 @@ selektaImageManager = function() {
         bucketFilter = bucketId;
         if (currImageBucketId != bucketId)
             setImage(0);
-        console.log("curr image:" + currImageBucketId)
         return bucketFilter;
     }
 

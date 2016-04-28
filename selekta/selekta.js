@@ -121,9 +121,11 @@ var selektaCore = function() {
                 return;
             }
             activeFilter = selektaImageManager.filterBucket(bucketId);
+            if (activeFilter != undefined)
+                notify("Filter set to bucket #" + (activeFilter+1));
         } else if (ctrlPressed) {
             if ( selektaImageManager.getCurrentBucketIdx() < bucketId ) {
-                notify("Bucket not created yet");
+                notify("Bucket does not exist");
                 return;
             }
             dialog.showMessageBox({ type: "question", buttons: ["Yes", "No"],
@@ -138,9 +140,12 @@ var selektaCore = function() {
 
         } else {
             selektaImageManager.addCurrentImageToBucket(bucketId);
+            var newBucketSize = selektaImageManager.getBucketQuantities()[bucketId];
+            // when in filter and no more images left, reset filter
+            if (activeFilter != undefined && newBucketSize == 0)
+                activeFilter = selektaImageManager.filterBucket(bucketId);
         }
         refreshView();
-
     };
 
     function refreshView(reset) {
