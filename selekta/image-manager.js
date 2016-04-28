@@ -15,14 +15,14 @@ selektaImageManager = function() {
     var bucketFilter = undefined;
     var currWindowSize = undefined;
 
-    var notifyCallback = undefined;
+    var notify = undefined;
 
     /***************************************************************
      * PUBLIC                                                      *
      ***************************************************************/
 
     var init = function(cb) {
-        notifyCallback = cb;
+        notify = (typeof cb === 'function') ? cb : function() {};
         resetBuckets();
     };
 
@@ -31,6 +31,7 @@ selektaImageManager = function() {
     };
 
     var setImageFolder = function(rootFolder, cb) {
+        var cb = (typeof cb === 'function') ? cb : function() {};
         if (rootFolder == undefined)
             return;
         images = [];
@@ -47,7 +48,7 @@ selektaImageManager = function() {
         walker.on("end", function() {
             setImage(0);
             resetBuckets();
-            if (typeof cb === "function" ) cb();
+            cb();
         });
     };
 
@@ -71,7 +72,7 @@ selektaImageManager = function() {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
-            notifyCallback("Bucket does not exist");
+            notify("Bucket does not exist");
             return;
         }
         var foundInBucket = getBucketForCurrentImage();
@@ -101,7 +102,7 @@ selektaImageManager = function() {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
-            notifyCallback("Bucket does not exist");
+            notify("Bucket does not exist");
             return;
         }
         buckets[bucketId] = [];
@@ -138,12 +139,12 @@ selektaImageManager = function() {
         if (bucketId == undefined ||
             bucketId < 0 ||
             bucketId >= buckets.length) {
-            notifyCallback("Bucket does not exist");
+            notify("Bucket does not exist");
             return;
         }
 
         if (bucketFilter == bucketId) {
-            notifyCallback("Bucket filter disabled");
+            notify("Bucket filter disabled");
             bucketFilter = undefined;
             return bucketFilter;
         }
@@ -155,7 +156,7 @@ selektaImageManager = function() {
         return bucketFilter;
     }
 
-    function saveBuckets(targetFolder, callback) {
+    function saveBuckets(targetFolder) {
 
         function handleBucket( bucket, bucketId ) {
             if (bucket.length == 0)
@@ -174,7 +175,7 @@ selektaImageManager = function() {
         for (i = 0; i < buckets.length; i++) {
             handleBucket( buckets[i], i );
         }
-        notifyCallback("Writing buckets to folder was successful");
+        notify("Writing buckets to folder was successful");
     };
 
     return {
@@ -259,8 +260,7 @@ selektaImageManager = function() {
 
     function showNotification(message) {
         if (message == undefined) return;
-        if (typeof notifyCallback === "function")
-            notifyCallback(message);
+        notify(message);
     };
 
     function printBuckets() {
