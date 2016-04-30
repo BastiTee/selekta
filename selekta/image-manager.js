@@ -57,6 +57,7 @@ selektaImageManager = function() {
             if (images.length > 0) {
                 setImage(0);
                 resetBuckets();
+                generateThumbnails();
             }
             if (typeof cb === "function") cb(images.length);
         });
@@ -254,8 +255,7 @@ selektaImageManager = function() {
         imsize(currImagePath, function(err, dim) {
             var picRatio = dim.width / dim.height;
             var screenRatio = currWindowSize[0] / currWindowSize[1];
-            console.log("PIC <"+picRatio+"> WIN <"+screenRatio+">");
-
+            // console.log("PIC <"+picRatio+"> WIN <"+screenRatio+">");
             if (picRatio > screenRatio ) {
                 $("#main-image").css({
                     width: "100%",
@@ -270,6 +270,10 @@ selektaImageManager = function() {
                 });
             }
         });
+    };
+
+    function generateThumbnails() {
+        console.log("generate-thumbnails");
     };
 
     function showNotification(message) {

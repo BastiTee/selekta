@@ -24,9 +24,9 @@ var selektaCore = function() {
         // register open-folder request from main thread
         ipc.on("open-folder", function(event, rootDir) {
             if (rootDir == undefined)
-                openFolder(false);
+                openFolder(true);
             else
-                openFolder(false, rootDir + "/sample-images");
+                openFolder(true, rootDir + "/sample-images");
         });
         registerKeyboardAndMouseEvents();
         selektaImageManager.init(notify);
