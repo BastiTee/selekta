@@ -27,6 +27,7 @@ selektaImageManager = function() {
 
     var setWindowSize = function(windowSize) {
         currWindowSize = windowSize;
+        imageResize();
     };
 
     var setImageFolder = function(rootFolder, recursive, cb) {
@@ -220,6 +221,8 @@ selektaImageManager = function() {
 
     function setImage(newImageIdx) {
 
+        $("#load-hover").show(0);
+
         var imagePos = "ANY";
         var searchScope = images;
         if (bucketFilter != undefined)
@@ -230,39 +233,43 @@ selektaImageManager = function() {
         } else if (currImageIdx >= searchScope.length) {
             imagePos = "LAST";
         }
-        currImageIdx = currImageIdx > 0 ? currImageIdx < searchScope.length - 1 ?
-            currImageIdx : searchScope.length - 1 : 0;
+        currImageIdx = ( currImageIdx > 0 ?
+            currImageIdx < searchScope.length - 1 ?
+            currImageIdx : searchScope.length - 1 : 0 );
         currImagePath = searchScope[currImageIdx];
 
-        $("#load-hover").show();
-        imsize(currImagePath, function(e, dimensions) {
-            $("#main-image").load(function() {
-                $("#load-hover").hide();
-            })
-            getAspectRatio(dimensions.width, dimensions.height);
-        });
+        $("#main-image").load(function() {
+            $("#load-hover").hide();
+        })
+        imageResize();
 
         $("#main-image").attr("src", currImagePath);
+
         return imagePos;
     };
 
-    function getAspectRatio(picHeight, picWidth) {
-        var picRatio = picWidth / picHeight;
-        var screenRatio = currWindowSize[0] / currWindowSize[1];
+    function imageResize() {
+        if (currImagePath == undefined)
+            return;
+        imsize(currImagePath, function(err, dim) {
+            var picRatio = dim.width / dim.height;
+            var screenRatio = currWindowSize[0] / currWindowSize[1];
+            console.log("PIC <"+picRatio+"> WIN <"+screenRatio+">");
 
-        if (picRatio < screenRatio) {
-            $("#main-image").css({
-                width: "100%",
-                height: "auto",
-                opacity: "1"
-            });
-        } else {
-            $("#main-image").css({
-                width: "auto",
-                height: "100%",
-                opacity: "1"
-            });
-        }
+            if (picRatio > screenRatio ) {
+                $("#main-image").css({
+                    width: "100%",
+                    height: "auto",
+                    opacity: "1"
+                });
+            } else {
+                $("#main-image").css({
+                    width: "auto",
+                    height: "100%",
+                    opacity: "1"
+                });
+            }
+        });
     };
 
     function showNotification(message) {

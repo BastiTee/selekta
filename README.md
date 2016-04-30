@@ -31,10 +31,10 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
 *Bugs*
 
- - [ ] Resizing fails on squared images
- - [ ] Resizing breaks when repeatedly changing the window size
+ - [x] Resizing fails on squared images
+ - [x] Resizing breaks when repeatedly changing the window size
  - [x] Progess icon shows up delayed after key was pressed
- - [ ] Progress icon hangs on startup sometimes
+ - [x] Progress icon hangs on startup sometimes (happens only in dev mode)
  - [ ] When hammering on h-key for help, help breaks
  - [x] Shift/Ctrl keys are not always reset correctly
 

@@ -17,6 +17,7 @@ var selektaCore = function() {
     var init = function () {
          // register size listener
          ipc.on("current-size", function(event, windowSize) {
+            // console.log("new window size");
             selektaImageManager.setWindowSize(windowSize);
         });
 

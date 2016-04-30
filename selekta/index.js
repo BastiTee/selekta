@@ -40,6 +40,10 @@ app.on("ready", function() {
             bw.webContents.send("current-size",
                 bw.getSize());
         });
+        bw.on("move", function() {
+            bw.webContents.send("current-size",
+                bw.getSize());
+        });
     });
 
     if (devMode)
