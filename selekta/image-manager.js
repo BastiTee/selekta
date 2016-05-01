@@ -252,13 +252,16 @@ selektaImageManager = function() {
 
         var currThumbPath = checkForThumbnail(currImagePath);
         if (currThumbPath === undefined) {
+            console.log("[IMG] " + currImagePath);
             // if no thumbnail available, then load full image immediately
             addImageDiv(currImagePath, function() {
                 $("#load-hover").hide();
             });
         } else {
+            console.log("[THU] " + currThumbPath);
             // if thumbnail available, load it before loading full image
             addImageDiv(currThumbPath, function() {
+                console.log("[IMG] " + currImagePath);
                 addImageDiv(currImagePath, function() {
                     $("#load-hover").hide();
                 });
@@ -315,10 +318,10 @@ selektaImageManager = function() {
             var imageTrg = getThumbnailPathForImage(imageSrc);
             try {
                 fs.accessSync(imageTrg, fs.F_OK | fs.R_OK);
+                // console.log("[THU] [EXI] " + imageTrg);
             } catch (err) {
-                mkdirP(path.dirname(imageTrg), function() {
-                    resizeImageToCopy(imageSrc, imageTrg);
-                });
+                // console.log("[THU] [NEW] " + imageTrg);
+                resizeImageToCopy(imageSrc, imageTrg);
             }
         }
     };
@@ -329,7 +332,7 @@ selektaImageManager = function() {
         return imageTrg;
     };
 
-    function mkdirP (p, cb) {
+    function mkdirp (p, cb) {
         cb = (typeof cb === 'function') ? cb : function () {};
         var mode = parseInt('0777', 8) & (~process.umask());
         p = path.resolve(p);
@@ -339,9 +342,9 @@ selektaImageManager = function() {
             }
             switch (er.code) {
                 case 'ENOENT':
-                mkdirP(path.dirname(p), function (er) {
+                mkdirp(path.dirname(p), function (er) {
                     if (er) cb(er);
-                    else mkdirP(p, cb);
+                    else mkdirp(p, cb);
                 });
                 break;
                 default:
@@ -355,9 +358,6 @@ selektaImageManager = function() {
     };
 
     function resizeImageToCopy( imageSrc, imageTrg ) {
-        console.log("[IN]  " + imageSrc);
-        console.log("[OUT] " + imageTrg);
-
         var imageDimSrc = imsize(imageSrc);
         var imageDimTrg = {};
         var maxDim = 500; // decide for image thumb size
@@ -374,8 +374,10 @@ selektaImageManager = function() {
         }
         var opts = [imageSrc, "-thumbnail",
         imageDimTrg.width + "x" + imageDimTrg.height, imageTrg];
-        exec("selekta/ext/convert.exe", opts, function(err, data) {
-            // maybe later
+        mkdirp(path.dirname(imageTrg), function() {
+            exec("selekta/ext/convert.exe", opts, function(err, data) {
+                console.log("convert [IN]  " + imageSrc + "[OUT] " + imageTrg);
+            })
         });
     };
 
