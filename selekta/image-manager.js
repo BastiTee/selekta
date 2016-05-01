@@ -256,11 +256,10 @@ selektaImageManager = function() {
         //     imageResize('#main-image-preview');
         // };
 
-        $("#main-image").load(function() {
-            $("#load-hover").hide();
-        })
         imageResize("#main-image");
-        $("#main-image").attr("src", currImagePath);
+        $("#main-image").one('load', function() {
+            $("#load-hover").hide();
+        }).attr("src", currImagePath);
 
         return imagePos;
     };
