@@ -19,17 +19,7 @@ body {
     height: inherit;
 }
 
-#main-image-preview {
-    position: absolute;
-    margin: auto;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0;
-}
-
-#main-image {
+.main-image {
     position: absolute;
     margin: auto;
     top: 0;

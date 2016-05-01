@@ -16,6 +16,7 @@ selektaImageManager = function() {
     var buckets = [];
     var currRootFolder = undefined;
     var currImagePath = undefined;
+    var currImageDivId = undefined;
     var currImageIdx = 0;
     var currBucketIdx = 0;
     var bucketFilter = undefined;
@@ -32,7 +33,8 @@ selektaImageManager = function() {
 
     var setWindowSize = function(windowSize) {
         currWindowSize = windowSize;
-        imageResize();
+        var widHei = getImageWidthHeight(currImagePath, currImageDivId);
+        $("#"+currImageDivId).css({width:widHei[0], height:widHei[1]});
     };
 
     var setImageFolder = function(rootFolder, recursive, cb) {
@@ -173,7 +175,6 @@ selektaImageManager = function() {
     };
 
     var saveBuckets = function(targetFolder) {
-
         function handleBucket( bucket, bucketId ) {
             if (bucket.length == 0)
                 return;
@@ -182,13 +183,14 @@ selektaImageManager = function() {
             fs.mkdir(targetBucketFolder, function() {
                 for (var i = 0; i < bucket.length; i++) {
                     var srcFilename = bucket[i].split(/[\\/]/).pop();
-                    var targetPath = path.join(targetBucketFolder, srcFilename);
+                    var targetPath = path.join(
+                        targetBucketFolder, srcFilename);
                     console.log(bucket[i] + " >> " + targetPath);
-                    fs.createReadStream(bucket[i]).pipe(fs.createWriteStream(targetPath))
+                    fs.createReadStream(bucket[i]).pipe(
+                        fs.createWriteStream(targetPath))
                 }
             });
         }
-
         for (var i = 0; i < buckets.length; i++) {
             handleBucket( buckets[i], i );
         }
@@ -248,38 +250,53 @@ selektaImageManager = function() {
             currImageIdx : searchScope.length - 1 : 0 );
         currImagePath = searchScope[currImageIdx];
 
-        // var thumb = checkForThumbnail(currImagePath);
-        // if (thumb !== undefined) {
-        //     $("#main-image-preview").remove();
-        //     $("#image-container").append(
-        //         "<img id=\"main-image-preview\" src=\""+thumb+"\"/>");
-        //     imageResize('#main-image-preview');
-        // };
-
-        imageResize("#main-image");
-        $("#main-image").one('load', function() {
-            $("#load-hover").hide();
-        }).attr("src", currImagePath);
-
+        var currThumbPath = checkForThumbnail(currImagePath);
+        if (currThumbPath === undefined) {
+            // if no thumbnail available, then load full image immediately
+            addImageDiv(currImagePath, function() {
+                $("#load-hover").hide();
+            });
+        } else {
+            // if thumbnail available, load it before loading full image
+            addImageDiv(currThumbPath, function() {
+                addImageDiv(currImagePath, function() {
+                    $("#load-hover").hide();
+                });
+            });
+        };
         return imagePos;
     };
 
-    function imageResize(element) {
-        if (currImagePath == undefined)
-            return;
-        imsize(currImagePath, function(err, dim) {
-            var picRatio = dim.width / dim.height;
-            var screenRatio = currWindowSize[0] / currWindowSize[1];
-            if (picRatio > screenRatio ) {
-                $(element).css({
-                    width: "100%", height: "auto", opacity: "1"
-                });
-            } else {
-                $(element).css({
-                    width: "auto", height: "100%", opacity: "1"
-                });
-            }
+    function addImageDiv(imagePath, cb) {
+        cb = (typeof cb === "function" ) ? cb : function() {};
+        var lastImageDivId = currImageDivId;
+        currImageDivId = "mi-" + (new Date).getTime();
+        var imSize = getImageWidthHeight(imagePath, currImageDivId);
+        var style = ( imSize == undefined ? "" :
+            "style=\"width:" + imSize[0] + ";height:"+imSize[1]+";\"" );
+        $("#image-container").append(
+            "<img id=\""+currImageDivId+"\" class=\"main-image\" src=\""
+            + imagePath + "\" "+style+" />");
+        imload($("#"+currImageDivId), function() {
+            if (lastImageDivId !== undefined) {
+                $("#"+lastImageDivId).remove();
+            };
+            $("#" + currImageDivId).css({opacity: "1"});
+            cb();
         });
+    };
+
+    function getImageWidthHeight(imagePath, imageDivId) {
+        if (imagePath == undefined)
+            return [ "100%", "auto" ];
+        var dim = imsize(imagePath);
+        var picRatio = dim.width / dim.height;
+        var screenRatio = currWindowSize[0] / currWindowSize[1];
+        if (picRatio > screenRatio ) {
+            return [ "100%", "auto" ];
+        } else {
+            return [ "auto", "100%" ];
+        }
     };
 
     function checkForThumbnail(imagePath) {
@@ -290,25 +307,20 @@ selektaImageManager = function() {
         } catch (err) {
             return undefined;
         }
-    }
+    };
 
     function generateThumbnails() {
         for (var i = 0; i < images.length; i++) {
             var imageSrc = images[i];
             var imageTrg = getThumbnailPathForImage(imageSrc);
-            var generateIfNotPresent = function (imgSrc, imgTrg, callback) {
-                fs.access(imgTrg, fs.F_OK | fs.R_OK, function(err) {
-                    if (!err)
-                        return;
-                    // generate folders first..
-                    mkdirP(path.dirname(imgTrg), function() {
-                        // .. then generate thumbs
-                        resizeImageToCopy(imgSrc, imgTrg);
-                    });
+            try {
+                fs.accessSync(imageTrg, fs.F_OK | fs.R_OK);
+            } catch (err) {
+                mkdirP(path.dirname(imageTrg), function() {
+                    resizeImageToCopy(imageSrc, imageTrg);
                 });
-            };
-            generateIfNotPresent(imageSrc, imageTrg);
-        };
+            }
+        }
     };
 
     function getThumbnailPathForImage ( imageSrc ) {
@@ -376,7 +388,7 @@ selektaImageManager = function() {
         if (path == undefined)
             return path;
         return path.split(/[\\/]/).join("/");
-    }
+    };
 
     function printBuckets() {
         return; // comment for development
