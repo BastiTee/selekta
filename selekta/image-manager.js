@@ -2,20 +2,25 @@ selektaImageManager = function() {
     "use strict";
 
     const imsize = require("image-size");
+    const imload = require("imagesloaded");
     const walk = require("walk");
     const path = require("path");
     const fs = require("fs");
+    const os = require("os");
+    const exec = require('child_process').execFile;
 
     const supportedFileSuffixes = new RegExp(".*\\.(jpg|jpeg|png|gif)$", "i");
     const maxBuckets = 9;
 
     var images = [];
     var buckets = [];
+    var currRootFolder = undefined;
     var currImagePath = undefined;
     var currImageIdx = 0;
     var currBucketIdx = 0;
     var bucketFilter = undefined;
     var currWindowSize = undefined;
+    var tmpFolder = undefined;
 
     /***************************************************************
      * PUBLIC                                                      *
@@ -34,10 +39,11 @@ selektaImageManager = function() {
         if (rootFolder == undefined)
             return;
         // normalize folder string
-        rootFolder = rootFolder.split(/[\\/]/).join("/") + "/";
+        rootFolder = normalize(rootFolder) + "/";
         if (rootFolder.endsWith("/"))
             rootFolder = rootFolder.substring(0, rootFolder.length - 1);
         // store folder depth
+        currRootFolder = rootFolder;
         var rootSubDirs = rootFolder.split(/[\\/]/).length;
 
         images = [];
@@ -49,15 +55,17 @@ selektaImageManager = function() {
             var depth = rootd - rootSubDirs;
             if (stat.name.match(supportedFileSuffixes)) {
                 if (recursive || depth === 0)
-                    images.push(root + "/" + stat.name);
+                    images.push(normalize(root) + "/" + stat.name);
             }
             next();
         });
         walker.on("end", function() {
             if (images.length > 0) {
-                setImage(0);
-                resetBuckets();
+                var tmpSubdir = currRootFolder.replace(/[^a-zA-Z0-9]+/g, "_");
+                tmpFolder = path.join(os.tmpDir(), "selekta_tmp", tmpSubdir);
                 generateThumbnails();
+                resetBuckets();
+                setImage(0);
             }
             if (typeof cb === "function") cb(images.length);
         });
@@ -99,7 +107,7 @@ selektaImageManager = function() {
 
     var getBucketForCurrentImage = function() {
         for (var i = 0; i < buckets.length; i++) {
-            for (j = 0; j < buckets[i].length; j++) {
+            for (var j = 0; j < buckets[i].length; j++) {
                 if (buckets[i][j] === currImagePath) {
                     return [i, j];
                 }
@@ -169,9 +177,10 @@ selektaImageManager = function() {
         function handleBucket( bucket, bucketId ) {
             if (bucket.length == 0)
                 return;
-            var targetBucketFolder = path.join(targetFolder, bucketId.toString())
+            var targetBucketFolder = path.join(targetFolder,
+                "selekta_0" + (bucketId + 1).toString())
             fs.mkdir(targetBucketFolder, function() {
-                for (i = 0; i < bucket.length; i++) {
+                for (var i = 0; i < bucket.length; i++) {
                     var srcFilename = bucket[i].split(/[\\/]/).pop();
                     var targetPath = path.join(targetBucketFolder, srcFilename);
                     console.log(bucket[i] + " >> " + targetPath);
@@ -180,7 +189,7 @@ selektaImageManager = function() {
             });
         }
 
-        for (i = 0; i < buckets.length; i++) {
+        for (var i = 0; i < buckets.length; i++) {
             handleBucket( buckets[i], i );
         }
     };
@@ -239,41 +248,124 @@ selektaImageManager = function() {
             currImageIdx : searchScope.length - 1 : 0 );
         currImagePath = searchScope[currImageIdx];
 
+        // var thumb = checkForThumbnail(currImagePath);
+        // if (thumb !== undefined) {
+        //     $("#main-image-preview").remove();
+        //     $("#image-container").append(
+        //         "<img id=\"main-image-preview\" src=\""+thumb+"\"/>");
+        //     imageResize('#main-image-preview');
+        // };
+
         $("#main-image").load(function() {
             $("#load-hover").hide();
         })
-        imageResize();
-
+        imageResize("#main-image");
         $("#main-image").attr("src", currImagePath);
 
         return imagePos;
     };
 
-    function imageResize() {
+    function imageResize(element) {
         if (currImagePath == undefined)
             return;
         imsize(currImagePath, function(err, dim) {
             var picRatio = dim.width / dim.height;
             var screenRatio = currWindowSize[0] / currWindowSize[1];
-            // console.log("PIC <"+picRatio+"> WIN <"+screenRatio+">");
             if (picRatio > screenRatio ) {
-                $("#main-image").css({
-                    width: "100%",
-                    height: "auto",
-                    opacity: "1"
+                $(element).css({
+                    width: "100%", height: "auto", opacity: "1"
                 });
             } else {
-                $("#main-image").css({
-                    width: "auto",
-                    height: "100%",
-                    opacity: "1"
+                $(element).css({
+                    width: "auto", height: "100%", opacity: "1"
                 });
             }
         });
     };
 
+    function checkForThumbnail(imagePath) {
+        var thumbPath = getThumbnailPathForImage(imagePath);
+        try {
+            fs.accessSync(thumbPath, fs.F_OK | fs.R_OK);
+            return thumbPath;
+        } catch (err) {
+            return undefined;
+        }
+    }
+
     function generateThumbnails() {
-        console.log("generate-thumbnails");
+        for (var i = 0; i < images.length; i++) {
+            var imageSrc = images[i];
+            var imageTrg = getThumbnailPathForImage(imageSrc);
+            var generateIfNotPresent = function (imgSrc, imgTrg, callback) {
+                fs.access(imgTrg, fs.F_OK | fs.R_OK, function(err) {
+                    if (!err)
+                        return;
+                    // generate folders first..
+                    mkdirP(path.dirname(imgTrg), function() {
+                        // .. then generate thumbs
+                        resizeImageToCopy(imgSrc, imgTrg);
+                    });
+                });
+            };
+            generateIfNotPresent(imageSrc, imageTrg);
+        };
+    };
+
+    function getThumbnailPathForImage ( imageSrc ) {
+        var imageSrcRel = imageSrc.replace(currRootFolder, "");
+        var imageTrg = path.join(tmpFolder, imageSrcRel);
+        return imageTrg;
+    };
+
+    function mkdirP (p, cb) {
+        cb = (typeof cb === 'function') ? cb : function () {};
+        var mode = parseInt('0777', 8) & (~process.umask());
+        p = path.resolve(p);
+        fs.mkdir(p, mode, function (er) {
+            if (!er) {
+                return cb(null);
+            }
+            switch (er.code) {
+                case 'ENOENT':
+                mkdirP(path.dirname(p), function (er) {
+                    if (er) cb(er);
+                    else mkdirP(p, cb);
+                });
+                break;
+                default:
+                fs.stat(p, function (er2, stat) {
+                    if (er2 || !stat.isDirectory()) cb(er)
+                        else cb(null);
+                });
+                break;
+            }
+        });
+    };
+
+    function resizeImageToCopy( imageSrc, imageTrg ) {
+        console.log("[IN]  " + imageSrc);
+        console.log("[OUT] " + imageTrg);
+
+        var imageDimSrc = imsize(imageSrc);
+        var imageDimTrg = {};
+        var maxDim = 500; // decide for image thumb size
+        var longSide = Math.max(imageDimSrc.width, imageDimSrc.height);
+        var longSideWidth = longSide === imageDimSrc.width ? true : false;
+        if (longSideWidth) {
+            imageDimTrg.width = maxDim;
+            imageDimTrg.height = (Math.round((maxDim / imageDimSrc.width)
+                * imageDimSrc.height));
+        } else {
+            imageDimTrg.height = maxDim;
+            imageDimTrg.width = (Math.round((maxDim / imageDimSrc.height)
+                * imageDimSrc.width));
+        }
+        var opts = [imageSrc, "-thumbnail",
+        imageDimTrg.width + "x" + imageDimTrg.height, imageTrg];
+        exec("selekta/ext/convert.exe", opts, function(err, data) {
+            // maybe later
+        });
     };
 
     function showNotification(message) {
@@ -281,12 +373,18 @@ selektaImageManager = function() {
         notify(message);
     };
 
+    function normalize(path) {
+        if (path == undefined)
+            return path;
+        return path.split(/[\\/]/).join("/");
+    }
+
     function printBuckets() {
         return; // comment for development
         console.log("- BUCKETS ----------------------------");
-        for (i = 0; i < buckets.length; i++) {
+        for (var i = 0; i < buckets.length; i++) {
             console.log("  [B#" + (i + 1) + "]");
-            for (j = 0; j < buckets[i].length; j++) {
+            for (var j = 0; j < buckets[i].length; j++) {
                 console.log("      [I#" + j + "] " +
                     buckets[i][j].split(/[\\/]/).pop());
             }

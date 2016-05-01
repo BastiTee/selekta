@@ -14,7 +14,6 @@ const windowSettings = {
 };
 const devMode = process.argv[2] == "dev" ? true : false;
 var bw = null;
-console.log(windowSettings.icon)
 app.on("window-all-closed", function() {
     if (process.platform != "darwin") {
         app.quit();
