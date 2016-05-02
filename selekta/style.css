@@ -52,6 +52,20 @@ body {
     padding-right: 5px;
     float: left;
 }
+
+.folder-numeration{
+  position: absolute;
+  top: (7em / 8);
+  left: (1em / 8);
+  width: (11em / 8);
+  height: (6em / 8);
+  font-family: sans-serif;
+  font-size: 60%;
+  font-weight: 700;
+  line-height: (8em / 14);
+  color: black;
+  text-align: center;
+}
 #help-hover {
     padding-right: 5px;
     float: left;

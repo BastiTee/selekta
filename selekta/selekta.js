@@ -92,13 +92,15 @@ var selektaCore = function() {
 
     function handleAddBucket() {
         var nextId = selektaImageManager.getNextBucketIdx();
+        var shownId = nextId + 1;
         if (nextId == undefined) {
             notify("No more new buckets allowed");
             return;
         }
         $("#bucket-container").append(
             "<div id=\"bucket-" + nextId + "\" class=\"bucket\" >" +
-            "<i class=\"fa fa-folder\"></i>" +
+            "<span class=\"folder-numeration\">" + shownId + "</span>" +
+            "<i class=\"fa fa-folder\">"+"</i>" +
             "<div class=\"bucket-quantity\">0</div></div>");
     }
 
