@@ -23,6 +23,9 @@ selektaImageManager = function() {
     var currWindowSize = undefined;
     var tmpFolder = undefined;
 
+    var checkedForResizeBackend = false;
+    var resizeBackendPath = undefined;
+
     /***************************************************************
      * PUBLIC                                                      *
      ***************************************************************/
@@ -365,6 +368,23 @@ selektaImageManager = function() {
     };
 
     function resizeImageToCopy( imageSrc, imageTrg ) {
+
+        // check if we have a convert backend on this machine once
+        if (!checkedForResizeBackend) {
+            console.log("Platform: " + os.platform() + "-" + os.arch());
+            if (os.platform() === "win32" &&
+                (os.arch() === "x64" || os.arch() === "ia32")) {
+                resizeBackendPath = "selekta/ext/imagemagick-windows/convert.exe";
+            } else {
+                console.log("No resize backend for this platform present.")
+            }
+            checkedForResizeBackend = true;
+        }
+
+        // no resize backend present?
+        if (checkedForResizeBackend && resizeBackendPath == undefined)
+            return;
+
         var imageDimSrc = imsize(imageSrc);
         var imageDimTrg = {};
         var maxDim = 500; // decide for image thumb size
@@ -382,7 +402,7 @@ selektaImageManager = function() {
         var opts = [imageSrc, "-thumbnail",
         imageDimTrg.width + "x" + imageDimTrg.height, imageTrg];
         mkdirp(path.dirname(imageTrg), function() {
-            exec("selekta/ext/convert.exe", opts, function(err, data) {
+            exec(resizeBackendPath, opts, function(err, data) {
                 console.log("convert [IN]  " + imageSrc + "[OUT] " + imageTrg);
             })
         });

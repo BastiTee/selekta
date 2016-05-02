@@ -20,7 +20,6 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
 *Tasks*
 
- - [ ] Optimize image loading speed by somehow preloading a reduced-size image version
  - [ ] Skip over loading a big image when user used next/prev key to skip the image
 
 *Bugs*
@@ -38,6 +37,7 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
 *Done*
 
+ - [x] Optimize image loading speed by somehow preloading a reduced-size image version
  - [x] Implement non-recursive folder walking
  - [x] Write images to subfolders based on buckets
  - [x] Allow filtering images by bucket number
