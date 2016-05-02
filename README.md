@@ -21,22 +21,11 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 *Tasks*
 
  - [ ] Optimize image loading speed by somehow preloading a reduced-size image version
- - [x] Implement non-recursive folder walking
- - [x] Write images to subfolders based on buckets
- - [x] Allow filtering images by bucket number
- - [x] Allow for dynamically creating the number of buckets
- - [x] Beautify notification bar (round edges, centered text, etc)
- - [x] Add the bucket engine to put images into containers
- - [x] Visualize the bucket engine
+ - [ ] Skip over loading a big image when user used next/prev key to skip the image
 
 *Bugs*
 
- - [x] Resizing fails on squared images
- - [x] Resizing breaks when repeatedly changing the window size
- - [x] Progess icon shows up delayed after key was pressed
- - [x] Progress icon hangs on startup sometimes (happens only in dev mode)
  - [ ] When hammering on h-key for help, help breaks
- - [x] Shift/Ctrl keys are not always reset correctly
 
 *Packaging*
 
@@ -46,6 +35,21 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 *Other*
 
  - [ ] Learn more about JavaScript's best practices and design patterns and beautify/refactor the s*t out of the code
+
+*Done*
+
+ - [x] Implement non-recursive folder walking
+ - [x] Write images to subfolders based on buckets
+ - [x] Allow filtering images by bucket number
+ - [x] Allow for dynamically creating the number of buckets
+ - [x] Beautify notification bar (round edges, centered text, etc)
+ - [x] Add the bucket engine to put images into containers
+ - [x] Visualize the bucket engine
+ - [x] Resizing fails on squared images
+ - [x] Resizing breaks when repeatedly changing the window size
+ - [x] Progess icon shows up delayed after key was pressed
+ - [x] Progress icon hangs on startup sometimes (happens only in dev mode)
+ - [x] Shift/Ctrl keys are not always reset correctly
 
 ## Licence and attributions
 Code is licensed under GPLv3.
