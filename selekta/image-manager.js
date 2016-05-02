@@ -271,6 +271,10 @@ selektaImageManager = function() {
     };
 
     function addImageDiv(imagePath, cb) {
+
+        var img = selektaImageProcessor.makeThumb(imagePath);
+
+
         cb = (typeof cb === "function" ) ? cb : function() {};
         var lastImageDivId = currImageDivId;
         currImageDivId = "mi-" + (new Date).getTime();
@@ -287,6 +291,9 @@ selektaImageManager = function() {
             $("#" + currImageDivId).css({opacity: "1"});
             cb();
         });
+
+
+
     };
 
     function getImageWidthHeight(imagePath, imageDivId) {

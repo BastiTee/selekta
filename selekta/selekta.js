@@ -4,6 +4,7 @@ var selektaCore = function() {
     "use strict"; // e.g., don't use undeclared variables
 
     require("./image-manager.js");
+    require("./image-processor.js");
 
     const ipc = require("electron").ipcRenderer;
     const dialog = require("electron").remote.dialog;
@@ -30,6 +31,7 @@ var selektaCore = function() {
         });
         registerKeyboardAndMouseEvents();
         selektaImageManager.init(notify);
+        selektaImageProcessor.init();
     };
 
     function registerKeyboardAndMouseEvents() {
@@ -46,7 +48,7 @@ var selektaCore = function() {
                 imagePos = selektaImageManager.setNextImage();
             } else if (event.which == 37) { // Left arrow key
                 imagePos = selektaImageManager.setPreviousImage();
-            } else if (event.which == 72) { // h key
+            } else if (event.which == 72 || event.which == 112) { // h key or F1
                 toggleHelpWindow();
             } else if (event.which == 79 && shiftPressed) { // o key
                 openFolder(true);
@@ -69,7 +71,7 @@ var selektaCore = function() {
                 ctrlPressed = true;
                 console.log("ctrl pressed");
             } else {
-                // console.log(event.which + " not supported.");
+                console.log(event.which + " not supported.");
             }
             if (imagePos === 'FIRST' && lastImagePos !== imagePos)
                 notify("Reached first image");
