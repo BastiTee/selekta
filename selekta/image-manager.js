@@ -164,7 +164,7 @@ selektaImageManager = function() {
             bucketFilter = undefined;
             return bucketFilter;
         }
-        currImageBucketId = getBucketForCurrentImage();
+        var currImageBucketId = getBucketForCurrentImage();
         if (currImageBucketId !== undefined )
             currImageBucketId = currImageBucketId[0];
 
