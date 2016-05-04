@@ -1,7 +1,7 @@
 const $ = require("jQuery");
 
 var selektaCore = function() {
-    "use strict"; // e.g., don't use undeclared variables
+    "use strict"; // e.g., don"t use undeclared variables
 
     require("./image-manager.js");
     require("./image-processor.js");
@@ -18,7 +18,6 @@ var selektaCore = function() {
     var init = function () {
          // register size listener
          ipc.on("current-size", function(event, windowSize) {
-            // console.log("new window size");
             selektaImageManager.setWindowSize(windowSize);
         });
 
@@ -30,7 +29,7 @@ var selektaCore = function() {
                 openFolder(true, rootDir + "/sample-images");
         });
         registerKeyboardAndMouseEvents();
-        selektaImageManager.init(notify);
+        selektaImageManager.init();
         selektaImageProcessor.init();
     };
 
@@ -48,7 +47,7 @@ var selektaCore = function() {
                 imagePos = selektaImageManager.setNextImage();
             } else if (event.which == 37) { // Left arrow key
                 imagePos = selektaImageManager.setPreviousImage();
-            } else if (event.which == 72 || event.which == 112) { // h key or F1
+            } else if (event.which == 72 || event.which == 112) { // h/F1 key
                 toggleHelpWindow();
             } else if (event.which == 79 && shiftPressed) { // o key
                 openFolder(true);
@@ -71,13 +70,13 @@ var selektaCore = function() {
                 ctrlPressed = true;
                 console.log("ctrl pressed");
             } else {
-                console.log(event.which + " not supported.");
+                //console.log(event.which + " not supported.");
             }
-            if (imagePos === 'FIRST' && lastImagePos !== imagePos)
+            if (imagePos === "FIRST" && lastImagePos !== imagePos)
                 notify("Reached first image");
-            else if (imagePos === 'LAST' && lastImagePos !== imagePos)
+            else if (imagePos === "LAST" && lastImagePos !== imagePos)
                 notify("Reached last image");
-            lastImagePos = imagePos; // make sure we don't repeat
+            lastImagePos = imagePos; // make sure we don"t repeat
             refreshView();
         };
 
@@ -104,7 +103,7 @@ var selektaCore = function() {
             "<span class=\"folder-numeration\">" + shownId + "</span>" +
             "<i class=\"fa fa-folder\">"+"</i>" +
             "<div class=\"bucket-quantity\">0</div></div>");
-    }
+    };
 
     function handleSaveBuckets() {
         var bucketSizes = selektaImageManager.getBucketQuantities();
@@ -126,10 +125,10 @@ var selektaCore = function() {
                 refreshView();
             });
         });
-    }
+    };
 
     function handleOnBucket(bucketId) {
-        animateCss("#bucket-" + bucketId + ".bucket i", "bounce");
+        bounceElement("#bucket-" + bucketId + ".bucket");
         var bucketSizes = selektaImageManager.getBucketQuantities();
         var currBucketIdx = selektaImageManager.getCurrentBucketIdx();
         if (shiftPressed || ctrlPressed ) {
@@ -149,10 +148,11 @@ var selektaCore = function() {
             else
                 notify("Filter set to bucket #" + (activeFilter+1));
         } else if (ctrlPressed) {
-            ctrlPressed = false; // necessary bec. open dialog can swallow ctrl released
+            ctrlPressed = false;
             var buttons = ["Yes", "No"];
             dialog.showMessageBox({ type: "question", buttons: buttons,
-                message: "Do you really want to empty bucket " + (bucketId+1) + "?",
+                message: "Do you really want to empty bucket "
+                + (bucketId+1) + "?",
                 noLink: true },
                 function (buttonIndex) {
                     if ( buttons[buttonIndex] == "Yes" ) {
@@ -162,7 +162,8 @@ var selektaCore = function() {
             });
         } else {
             selektaImageManager.addCurrentImageToBucket(bucketId);
-            var newBucketSize = selektaImageManager.getBucketQuantities()[bucketId];
+            var newBucketSize =
+            selektaImageManager.getBucketQuantities()[bucketId];
             // when in filter and no more images left, reset filter
             if (activeFilter != undefined && newBucketSize == 0)
                 activeFilter = selektaImageManager.filterBucket(bucketId);
@@ -194,29 +195,37 @@ var selektaCore = function() {
             $("#bucket-" + bucketForImage[0]).css("color", "lightblue");
         }
         $("#total-images .bucket-quantity").empty();
-        $("#total-images .bucket-quantity").append(totalBucketized + "/" + totalImages);
+        $("#total-images .bucket-quantity").append(totalBucketized + "/"
+            + totalImages);
     };
 
-    function animateCss( elementId, animationName, hide) {
-        if (!hide)
-            $(elementId).show();
-        $(elementId).addClass("animated " + animationName).one("webkitAnimationEnd",
+    function bounceElement( elementId ) {
+        $(elementId).addClass("animated bounce").one("webkitAnimationEnd",
             function() {
-                $(elementId).removeClass("animated " + animationName);
-                if (hide)
-                    $(elementId).hide();
+                $(elementId).removeClass("animated bounce");
             });
     };
 
     function toggleHelpWindow() {
         if (helpOpen) {
-            animateCss("#help-hover","bounce");
-            animateCss("#help-window","slideOutDown", true);
+            bounceElement("#help-hover");
+            $("#help-window").addClass("animated slideOutDown").one(
+            "webkitAnimationEnd",
+            function() {
+                $("#help-window").removeClass("animated slideOutDown");
+                $("#help-window").hide();
+                helpOpen = false;
+            });
         } else {
-            animateCss("#help-hover","bounce");
-            animateCss("#help-window","slideInUp", false);
+            bounceElement("#help-hover");
+            $("#help-window").show();
+            $("#help-window").addClass("animated slideInUp").one(
+            "webkitAnimationEnd",
+            function() {
+                $("#help-window").removeClass("animated slideInUp");
+                helpOpen = true;
+            });
         }
-        helpOpen = !helpOpen;
     };
 
     function openFolder(recursive, explicitFolder) {
@@ -228,27 +237,30 @@ var selektaCore = function() {
             }, function(imageDir) {
                 if (imageDir === undefined)
                     return;
-                selektaImageManager.setImageFolder(imageDir[0], recursive, function(imageCount) {
+                selektaImageManager.setImageFolder(imageDir[0], recursive,
+                    function(imageCount) {
+                        if (imageCount <= 0)
+                            notify("Folder does not contain any images");
+                        else
+                            refreshView(true);
+                    });
+            });
+        } else {
+            selektaImageManager.setImageFolder(
+                explicitFolder, recursive, function(imageCount) {
                     if (imageCount <= 0)
                         notify("Folder does not contain any images");
                     else
                         refreshView(true);
                 });
-            });
-        } else {
-            selektaImageManager.setImageFolder(explicitFolder, recursive, function(imageCount) {
-                if (imageCount <= 0)
-                    notify("Folder does not contain any images");
-                else
-                    refreshView(true);
-            });
         }
     };
 
     function notify(message) {
         var pId = "notification-" + Date.now();
         $("#notification-box").prepend(
-            "<p id=\""+pId+"\" class=\"notification animated zoomIn\">"+message+"</p>");
+            "<p id=\""+pId+"\" class=\"notification animated zoomIn\">"
+            + message+"</p>");
         $("#"+pId).one(
             "webkitAnimationEnd",
             function() {

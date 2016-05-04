@@ -20,11 +20,13 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
 *Tasks*
 
+ - [ ] Only create a thumbnail when it makes sense, e.g., only images over 5 MB
  - [ ] Skip over loading a big image when user used next/prev key to skip the image
 
 *Bugs*
 
- - [ ] When hammering on h-key for help, help breaks
+ - [ ] On EXIF-based image rotation, the image does not fit in frame anymore
+ - [ ] On folders with lots of big images the thumbnail calculation creates massive I/O load (should be limited)
 
 *Packaging*
 
@@ -37,6 +39,9 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
 *Done*
 
+ - [x] Read exif and rotate image accordingly
+ - [x] Number on buckets disappear on bounce animation
+ - [x] When hammering on h-key for help, help breaks
  - [x] Optimize image loading speed by somehow preloading a reduced-size image version
  - [x] Implement non-recursive folder walking
  - [x] Write images to subfolders based on buckets

@@ -7,6 +7,7 @@ selektaImageManager = function() {
     const path = require("path");
     const fs = require("fs");
     const os = require("os");
+    const exif = require("jpeg-exif");
     const exec = require('child_process').execFile;
 
     const supportedFileSuffixes = new RegExp(".*\\.(jpg|jpeg|png|gif)$", "i");
@@ -17,6 +18,7 @@ selektaImageManager = function() {
     var currRootFolder = undefined;
     var currImagePath = undefined;
     var currImageDivId = undefined;
+    var currImageOrientation = undefined;
     var currImageIdx = 0;
     var currBucketIdx = 0;
     var bucketFilter = undefined;
@@ -36,7 +38,8 @@ selektaImageManager = function() {
 
     var setWindowSize = function(windowSize) {
         currWindowSize = windowSize;
-        var widHei = getImageWidthHeight(currImagePath, currImageDivId);
+        var widHei = getImageWidthHeight(currImagePath, currImageDivId,
+            currImageOrientation);
         $("#"+currImageDivId).css({width:widHei[0], height:widHei[1]});
     };
 
@@ -253,6 +256,13 @@ selektaImageManager = function() {
             currImageIdx : searchScope.length - 1 : 0 );
         currImagePath = searchScope[currImageIdx];
 
+        var exifData = exif.parseSync(currImagePath);
+        currImageOrientation = undefined;
+        if (exifData !== undefined &&
+            exifData["Orientation"] !== undefined) {
+            currImageOrientation = exifData["Orientation"];
+        }
+
         var currThumbPath = checkForThumbnail(currImagePath);
         if (currThumbPath === undefined) {
             console.log("[IMG] " + currImagePath);
@@ -277,11 +287,11 @@ selektaImageManager = function() {
 
         var img = selektaImageProcessor.makeThumb(imagePath);
 
-
         cb = (typeof cb === "function" ) ? cb : function() {};
         var lastImageDivId = currImageDivId;
         currImageDivId = "mi-" + (new Date).getTime();
-        var imSize = getImageWidthHeight(imagePath, currImageDivId);
+        var imSize = getImageWidthHeight(imagePath, currImageDivId,
+            currImageOrientation);
         var style = ( imSize == undefined ? "" :
             "style=\"width:" + imSize[0] + ";height:"+imSize[1]+";\"" );
         $("#image-container").append(
@@ -291,21 +301,31 @@ selektaImageManager = function() {
             if (lastImageDivId !== undefined) {
                 $("#"+lastImageDivId).remove();
             };
+            if (currImageOrientation !== undefined) {
+                var degrees = 0;
+                if (currImageOrientation == 6)
+                    degrees = 90;
+                else if (currImageOrientation == 8)
+                    degrees = -90;
+                else if (currImageOrientation == 3)
+                    degrees = 180;
+                console.log("rotating image >> ori=" + currImageOrientation
+                    + " deg=" + degrees);
+                $("#" + currImageDivId).css(
+                {transform: "rotate(" + degrees + "deg)"});
+            };
             $("#" + currImageDivId).css({opacity: "1"});
             cb();
         });
-
-
-
     };
 
-    function getImageWidthHeight(imagePath, imageDivId) {
+    function getImageWidthHeight(imagePath, imageDivId, orientation) {
         if (imagePath == undefined)
             return [ "100%", "auto" ];
         var dim = imsize(imagePath);
         var picRatio = dim.width / dim.height;
         var screenRatio = currWindowSize[0] / currWindowSize[1];
-        if (picRatio > screenRatio ) {
+        if (picRatio > screenRatio) {
             return [ "100%", "auto" ];
         } else {
             return [ "auto", "100%" ];
@@ -316,6 +336,10 @@ selektaImageManager = function() {
         var thumbPath = getThumbnailPathForImage(imagePath);
         try {
             fs.accessSync(thumbPath, fs.F_OK | fs.R_OK);
+            // make sure we don't run in 0-byte files
+            var stat = fs.statSync(thumbPath);
+            if (stat["size"] !== undefined && stat["size"] === 0)
+                return undefined;
             return thumbPath;
         } catch (err) {
             return undefined;
@@ -328,9 +352,11 @@ selektaImageManager = function() {
             var imageTrg = getThumbnailPathForImage(imageSrc);
             try {
                 fs.accessSync(imageTrg, fs.F_OK | fs.R_OK);
-                // console.log("[THU] [EXI] " + imageTrg);
+                // make sure we don't run in 0-byte files
+                var stat = fs.statSync(imageTrg);
+                if (stat["size"] === 0)
+                    resizeImageToCopy(imageSrc, imageTrg);
             } catch (err) {
-                // console.log("[THU] [NEW] " + imageTrg);
                 resizeImageToCopy(imageSrc, imageTrg);
             }
         }
