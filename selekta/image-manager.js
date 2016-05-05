@@ -1,7 +1,7 @@
 selektaImageManager = function() {
     "use strict";
 
-    require("./jobqueue.js");
+    require("./im-wrapper.js");
 
     const imsize = require("image-size");
     const imload = require("imagesloaded");
@@ -9,9 +9,6 @@ selektaImageManager = function() {
     const path = require("path");
     const fs = require("fs");
     const os = require("os");
-    const exif = require("jpeg-exif");
-    const mkdirp = require("mkdirp");
-    const exec = require('child_process').execFile;
 
     const supportedFileSuffixes = new RegExp(".*\\.(jpg|jpeg|png|gif)$", "i");
     const maxBuckets = 9;
@@ -28,8 +25,6 @@ selektaImageManager = function() {
     var currWindowSize = undefined;
     var tmpFolder = undefined;
 
-    var checkedForResizeBackend = false;
-    var resizeBackendPath = undefined;
 
     /***************************************************************
      * PUBLIC                                                      *
@@ -363,7 +358,9 @@ selektaImageManager = function() {
                 if (stat["size"] === 0)
                     resizeImageToCopy(imageSrc, imageTrg);
             } catch (err) {
-                resizeImageToCopy(imageSrc, imageTrg);
+                // console.log("[THU] [NEW] " + imageTrg);
+                selektaImageMagickWrapper.resizeImageToCopy(
+                    imageSrc, imageTrg);
             }
         }
     };
@@ -372,48 +369,6 @@ selektaImageManager = function() {
         var imageSrcRel = imageSrc.replace(currRootFolder, "");
         var imageTrg = path.join(tmpFolder, imageSrcRel);
         return imageTrg;
-    };
-
-    function resizeImageToCopy( imageSrc, imageTrg ) {
-
-        // check if we have a convert backend on this machine once
-        if (!checkedForResizeBackend) {
-            console.log("Platform: " + os.platform() + "-" + os.arch());
-            if (os.platform() === "win32" &&
-                (os.arch() === "x64" || os.arch() === "ia32")) {
-                resizeBackendPath = "selekta/ext/imagemagick-windows/convert.exe";
-            } else {
-                console.log("No resize backend for this platform present.")
-            }
-            checkedForResizeBackend = true;
-        }
-
-        // no resize backend present?
-        if (checkedForResizeBackend && resizeBackendPath == undefined)
-            return;
-
-        var imageDimSrc = imsize(imageSrc);
-        var imageDimTrg = {};
-        var maxDim = 500; // decide for image thumb size
-        var longSide = Math.max(imageDimSrc.width, imageDimSrc.height);
-        var longSideWidth = longSide === imageDimSrc.width ? true : false;
-        if (longSideWidth) {
-            imageDimTrg.width = maxDim;
-            imageDimTrg.height = (Math.round((maxDim / imageDimSrc.width)
-                * imageDimSrc.height));
-        } else {
-            imageDimTrg.height = maxDim;
-            imageDimTrg.width = (Math.round((maxDim / imageDimSrc.height)
-                * imageDimSrc.width));
-        }
-        var opts = [imageSrc, "-thumbnail",
-        imageDimTrg.width + "x" + imageDimTrg.height, imageTrg];
-
-        mkdirp(path.dirname(imageTrg), function() {
-            exec(resizeBackendPath, opts, function() {
-            console.log("converted [IN]  " + imageSrc + "[OUT] " + imageTrg);
-            });
-        });
     };
 
     function showNotification(message) {

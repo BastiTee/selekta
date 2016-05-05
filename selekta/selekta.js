@@ -4,7 +4,7 @@ var selektaCore = function() {
     "use strict"; // e.g., don"t use undeclared variables
 
     require("./image-manager.js");
-    require("./image-processor.js");
+    require("./_wip_image-processor.js");
 
     const ipc = require("electron").ipcRenderer;
     const dialog = require("electron").remote.dialog;
