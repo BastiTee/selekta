@@ -257,12 +257,8 @@ selektaImageManager = function() {
         var imageName = currImagePath.split(/[\\/]/).pop();
         $("#image-name").text(imageName);
 
-        var exifData = exif.parseSync(currImagePath);
-        currImageOrientation = undefined;
-        if (exifData !== undefined &&
-            exifData["Orientation"] !== undefined) {
-            currImageOrientation = exifData["Orientation"];
-        }
+        currImageOrientation = selektaImageMagickWrapper.getOrientation(
+            currImagePath);
 
         var currThumbPath = checkForThumbnail(currImagePath);
         if (currThumbPath === undefined) {
@@ -303,17 +299,10 @@ selektaImageManager = function() {
                 $("#"+lastImageDivId).remove();
             };
             if (currImageOrientation !== undefined) {
-                var degrees = 0;
-                if (currImageOrientation == 6)
-                    degrees = 90;
-                else if (currImageOrientation == 8)
-                    degrees = -90;
-                else if (currImageOrientation == 3)
-                    degrees = 180;
+                var degrees = selektaImageMagickWrapper.getDegreesForOrientation(
+                                        currImageOrientation);
                 console.log("rotating image >> ori=" + currImageOrientation
                     + " deg=" + degrees);
-                $("#" + currImageDivId).css(
-                {transform: "rotate(" + degrees + "deg)"});
             };
             $("#" + currImageDivId).css({opacity: "1"});
             cb();
@@ -356,10 +345,11 @@ selektaImageManager = function() {
                 // make sure we don't run in 0-byte files
                 var stat = fs.statSync(imageTrg);
                 if (stat["size"] === 0)
-                    resizeImageToCopy(imageSrc, imageTrg);
+                    selektaImageMagickWrapper.createThumbnail(
+                        imageSrc, imageTrg);
             } catch (err) {
                 // console.log("[THU] [NEW] " + imageTrg);
-                selektaImageMagickWrapper.resizeImageToCopy(
+                selektaImageMagickWrapper.createThumbnail(
                     imageSrc, imageTrg);
             }
         }
