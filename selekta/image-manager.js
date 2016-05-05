@@ -256,6 +256,9 @@ selektaImageManager = function() {
             currImageIdx : searchScope.length - 1 : 0 );
         currImagePath = searchScope[currImageIdx];
 
+        var imageName = currImagePath.split(/[\\/]/).pop();
+        $("#image-name").text(imageName);
+
         var exifData = exif.parseSync(currImagePath);
         currImageOrientation = undefined;
         if (exifData !== undefined &&

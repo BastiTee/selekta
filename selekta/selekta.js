@@ -10,6 +10,7 @@ var selektaCore = function() {
     const dialog = require("electron").remote.dialog;
 
     var helpOpen = false;
+    var imageNameOpen = false;
     var shiftPressed = false;
     var ctrlPressed = false;
     var activeFilter = undefined;
@@ -49,6 +50,8 @@ var selektaCore = function() {
                 imagePos = selektaImageManager.setPreviousImage();
             } else if (event.which == 72 || event.which == 112) { // h/F1 key
                 toggleHelpWindow();
+            } else if (event.which == 83) { // h/F1 key
+                toggleImageName();
             } else if (event.which == 79 && shiftPressed) { // o key
                 openFolder(true);
             } else if (event.which == 79 && !shiftPressed) { // shift+o key
@@ -70,7 +73,7 @@ var selektaCore = function() {
                 ctrlPressed = true;
                 console.log("ctrl pressed");
             } else {
-                //console.log(event.which + " not supported.");
+                console.log(event.which + " not supported.");
             }
             if (imagePos === "FIRST" && lastImagePos !== imagePos)
                 notify("Reached first image");
@@ -225,6 +228,26 @@ var selektaCore = function() {
                 $("#help-window").removeClass("animated slideInUp");
                 helpOpen = true;
             });
+        }
+    };
+
+    function toggleImageName() {
+        if (imageNameOpen) {
+            $("#footer").addClass("animated slideOutDown").one(
+                "webkitAnimationEnd",
+                function() {
+                    $("#footer").removeClass("animated slideOutDown");
+                    $("#footer").hide();
+                    imageNameOpen = false;
+                });
+        } else {
+            $("#footer").show();
+            $("#footer").addClass("animated slideInUp").one(
+                "webkitAnimationEnd",
+                function() {
+                    $("#footer").removeClass("animated slideInUp");
+                    imageNameOpen = true;
+                });
         }
     };
 
