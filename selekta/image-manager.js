@@ -1,6 +1,8 @@
 selektaImageManager = function() {
     "use strict";
 
+    require("./jobqueue.js");
+
     const imsize = require("image-size");
     const imload = require("imagesloaded");
     const walk = require("walk");
@@ -8,6 +10,7 @@ selektaImageManager = function() {
     const fs = require("fs");
     const os = require("os");
     const exif = require("jpeg-exif");
+    const mkdirp = require("mkdirp");
     const exec = require('child_process').execFile;
 
     const supportedFileSuffixes = new RegExp(".*\\.(jpg|jpeg|png|gif)$", "i");
@@ -371,31 +374,6 @@ selektaImageManager = function() {
         return imageTrg;
     };
 
-    function mkdirp (p, cb) {
-        cb = (typeof cb === 'function') ? cb : function () {};
-        var mode = parseInt('0777', 8) & (~process.umask());
-        p = path.resolve(p);
-        fs.mkdir(p, mode, function (er) {
-            if (!er) {
-                return cb(null);
-            }
-            switch (er.code) {
-                case 'ENOENT':
-                mkdirp(path.dirname(p), function (er) {
-                    if (er) cb(er);
-                    else mkdirp(p, cb);
-                });
-                break;
-                default:
-                fs.stat(p, function (er2, stat) {
-                    if (er2 || !stat.isDirectory()) cb(er)
-                        else cb(null);
-                });
-                break;
-            }
-        });
-    };
-
     function resizeImageToCopy( imageSrc, imageTrg ) {
 
         // check if we have a convert backend on this machine once
@@ -430,10 +408,11 @@ selektaImageManager = function() {
         }
         var opts = [imageSrc, "-thumbnail",
         imageDimTrg.width + "x" + imageDimTrg.height, imageTrg];
+
         mkdirp(path.dirname(imageTrg), function() {
-            exec(resizeBackendPath, opts, function(err, data) {
-                console.log("convert [IN]  " + imageSrc + "[OUT] " + imageTrg);
-            })
+            exec(resizeBackendPath, opts, function() {
+            console.log("converted [IN]  " + imageSrc + "[OUT] " + imageTrg);
+            });
         });
     };
 

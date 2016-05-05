@@ -19,6 +19,7 @@
     "imagesloaded": "^4.1.0",
     "jpeg-exif": "0.0.8",
     "jquery": "^2.2.3",
+    "mkdirp": "^0.5.1",
     "walk": "^2.3.9"
   }
 }

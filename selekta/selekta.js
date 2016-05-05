@@ -73,7 +73,7 @@ var selektaCore = function() {
                 ctrlPressed = true;
                 console.log("ctrl pressed");
             } else {
-                console.log(event.which + " not supported.");
+                // console.log(event.which + " not supported.");
             }
             if (imagePos === "FIRST" && lastImagePos !== imagePos)
                 notify("Reached first image");
