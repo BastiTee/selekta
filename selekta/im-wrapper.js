@@ -70,7 +70,6 @@ selektaImageMagickWrapper = function () {
     var getOrientation = function ( imageSrc ) {
 
         // check cache
-        console.log(imageOrientations);
         var cachedOrientation = imageOrientations[imageSrc];
         if (cachedOrientation !== undefined) {
             console.log("Returning orientation from cache: "
