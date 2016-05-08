@@ -1,10 +1,11 @@
-selektaImageMagickWrapper = function () {
+selektaJobProcessor = function () {
     "use strict";
 
     const backendBase = "selekta/ext";
     const path = require("path");
     const exec = require('child_process');
     const os = require("os");
+    const fs = require("fs");
     const imsize = require("image-size");
     const mkdirp = require("mkdirp");
     const StringDecoder = require('string_decoder').StringDecoder;
@@ -16,11 +17,22 @@ selektaImageMagickWrapper = function () {
     var identify = undefined;
 
     var jobQueue = Promise.resolve();
-    var imageOrientations = {};
+    var imageOrientationCache = {};
 
     /***************************************************************/
 
-    var createThumbnail = function( imageSrc, imageTrg ) {
+    var invokeConvertToThumbnailJob = function( imageSrc, imageTrg ) {
+
+        try {
+            fs.accessSync(imageTrg, fs.F_OK | fs.R_OK);
+            var stat = fs.statSync(imageTrg);
+            if (stat["size"] !== 0)
+                return;
+            console.log("existing thumb w size=" + stat["size"]);
+        } catch (err) {
+            console.log(err);
+            // on non-existing or 0-byte files just continue..
+        }
 
         checkBackend();
         if (checkedForBackend && backendPath == undefined)
@@ -49,16 +61,8 @@ selektaImageMagickWrapper = function () {
             var _opts = opts;
             jobQueue = jobQueue.then(
                 function(result) {
-                    return newThumbnailCreationJob(
+                    return newConvertToThumbnailPromise(
                         _imageSrc, _imageTrg, _opts);
-                },
-                function(err) {
-                    console.log("ERR!!! " + err);
-                }
-            );
-            jobQueue = jobQueue.then(
-                function(result) {
-                    return newGetOrientationJob(_imageSrc);
                 },
                 function(err) {
                     console.log("ERR!!! " + err);
@@ -67,13 +71,32 @@ selektaImageMagickWrapper = function () {
         })();
     };
 
+    var invokeIdentifyOrientationJob = function( imageSrc ) {
+
+        checkBackend();
+        if (checkedForBackend && backendPath == undefined)
+            return;
+
+        (function(){
+            var _imageSrc = imageSrc;
+            jobQueue = jobQueue.then(
+                function(result) {
+                    return newIdentifyOrientationPromise(_imageSrc);
+                },
+                function(err) {
+                    console.log("ERR!!! " + err);
+                }
+            );
+        })();
+    }
+
     var getOrientation = function ( imageSrc ) {
 
         // check cache
-        var cachedOrientation = imageOrientations[imageSrc];
+        var cachedOrientation = imageOrientationCache[imageSrc];
         if (cachedOrientation !== undefined) {
-            console.log("Returning orientation from cache: "
-                + cachedOrientation);
+            // console.log("Returning orientation from cache: "
+            // + cachedOrientation);
             return cachedOrientation
         }
 
@@ -90,46 +113,47 @@ selektaImageMagickWrapper = function () {
             return orientation;
     };
 
-    var getDegreesForOrientation = function( orientation ) {
-
-        // TODO
-        return orientation;
-    };
-
     /***************************************************************/
 
     return {
-        createThumbnail: createThumbnail,
+        invokeConvertToThumbnailJob: invokeConvertToThumbnailJob,
+        invokeIdentifyOrientationJob: invokeIdentifyOrientationJob,
         getOrientation: getOrientation,
-        getDegreesForOrientation: getDegreesForOrientation
     };
 
     /***************************************************************/
 
-    function newThumbnailCreationJob (imageSrc, imageTrg, opts) {
+    function newConvertToThumbnailPromise (imageSrc, imageTrg, opts) {
         return new Promise(function(resolve, reject) {
-            console.log("[JOB] THUMBN [BEG] :: [IN] "
-                + imageSrc + "[OUT] " + imageTrg);
+            // console.log("[JOB] THUMBN [BEG] :: [IN] "
+                // + imageSrc + " [OUT] " + imageTrg);
             mkdirp(path.dirname(imageTrg), function(){
                 exec.execFile(convert, opts, function() {
                     console.log("[JOB] THUMBN [END] :: [IN] "
-                        + imageSrc + "[OUT] " + imageTrg);
+                        + imageSrc + " [OUT] " + imageTrg);
                     resolve();
                 });
             });
         });
     };
 
-    function newGetOrientationJob (imageSrc) {
+    function newIdentifyOrientationPromise (imageSrc) {
         return new Promise(function(resolve, reject) {
-            console.log("[JOB] ORIENT [BEG] :: [IN] " + imageSrc);
-            var or = getOrientation(imageSrc);
-            if (or !== undefined) {
-                imageOrientations[imageSrc] = or;
-            }
-            console.log("[JOB] ORIENT [END] :: [IN] "
-                        + imageSrc + " [ORI] " + or);
-            resolve();
+            // console.log("[JOB] ORIENT [BEG] :: [IN] " + imageSrc);
+            var opts = ["-format", "'%[EXIF:Orientation]'", imageSrc];
+            exec.execFile(identify, opts, function(err, data) {
+                var orientation = undefined;
+                if (data !== undefined) {
+                    orientation = decoder.write(data).split("'").join("");
+                }
+                if (orientation == undefined ||orientation === "" ) {
+                    orientation = 1;
+                }
+                console.log("[JOB] ORIENT [END] :: [IN] "
+                    + imageSrc + " [ORI] " + orientation );
+                imageOrientationCache[imageSrc] = orientation; // add to cache
+                resolve();
+            });
         });
     };
 

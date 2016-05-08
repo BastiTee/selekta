@@ -1,7 +1,7 @@
 selektaImageManager = function() {
     "use strict";
 
-    require("./im-wrapper.js");
+    require("./job-processor.js");
 
     const imsize = require("image-size");
     const imload = require("imagesloaded");
@@ -69,7 +69,13 @@ selektaImageManager = function() {
             if (images.length > 0) {
                 var tmpSubdir = currRootFolder.replace(/[^a-zA-Z0-9]+/g, "_");
                 tmpFolder = path.join(os.tmpDir(), "selekta_tmp", tmpSubdir);
-                generateThumbnails();
+                // invoke thumbnail creation
+                for (var i = 0; i < images.length; i++) {
+                    selektaJobProcessor.invokeConvertToThumbnailJob(
+                        images[i], getThumbnailPathForImage(images[i]));
+                    selektaJobProcessor.invokeIdentifyOrientationJob(
+                        images[i]);
+                }
                 resetBuckets();
                 setImage(0);
             }
@@ -257,7 +263,7 @@ selektaImageManager = function() {
         var imageName = currImagePath.split(/[\\/]/).pop();
         $("#image-name").text(imageName);
 
-        currImageOrientation = selektaImageMagickWrapper.getOrientation(
+        currImageOrientation = selektaJobProcessor.getOrientation(
             currImagePath);
 
         var currThumbPath = checkForThumbnail(currImagePath);
@@ -298,18 +304,57 @@ selektaImageManager = function() {
             if (lastImageDivId !== undefined) {
                 $("#"+lastImageDivId).remove();
             };
-            if (currImageOrientation !== undefined &&
-                currImageOrientation !== 1 ) {
-                var degrees =
-                selektaImageMagickWrapper.getDegreesForOrientation(
-                        currImageOrientation);
-                console.log("rotating image >> ori=" + currImageOrientation
-                    + " deg=" + degrees);
-            };
+            applyOrientation();
             $("#" + currImageDivId).css({opacity: "1"});
             cb();
         });
     };
+
+    function applyOrientation() {
+        if (currImageOrientation === undefined ||
+            currImageOrientation === 1 )
+            return;
+        var rotate = undefined;
+        var flip = undefined;
+        switch (currImageOrientation) {
+            case "2":
+                flip = -1;
+                break;
+            case "3":
+                rotate=180;
+                break;
+            case "4":
+                rotate=180;
+                flip=-1;
+                break;
+            case "5":
+                rotate=90;
+                flip=-1;
+                break;
+            case "6":
+                rotate=90;
+                break;
+            case "7":
+                rotate=-90;
+                flip=-1;
+                break;
+            case "8":
+                rotate=-90;
+                break;
+            default:
+                break;
+        };
+        if (rotate === undefined && flip === undefined)
+            return;
+        console.log("EXIF_ORI=" + currImageOrientation + " ROT=" + rotate +
+            " FLIP=" + flip);
+        var transformation = "";
+        if (flip !== undefined)
+            transformation = "scaleX("+flip+")";
+        if (rotate !== undefined)
+            transformation = transformation + "rotate("+rotate+"deg) ";
+        $("#" + currImageDivId).css({ transform: transformation });
+    }
 
     function getImageWidthHeight(imagePath, imageDivId, orientation) {
         if (imagePath == undefined)
@@ -335,25 +380,6 @@ selektaImageManager = function() {
             return thumbPath;
         } catch (err) {
             return undefined;
-        }
-    };
-
-    function generateThumbnails() {
-        for (var i = 0; i < images.length; i++) {
-            var imageSrc = images[i];
-            var imageTrg = getThumbnailPathForImage(imageSrc);
-            try {
-                fs.accessSync(imageTrg, fs.F_OK | fs.R_OK);
-                // make sure we don't run in 0-byte files
-                var stat = fs.statSync(imageTrg);
-                if (stat["size"] === 0)
-                    selektaImageMagickWrapper.createThumbnail(
-                        imageSrc, imageTrg);
-            } catch (err) {
-                // console.log("[THU] [NEW] " + imageTrg);
-                selektaImageMagickWrapper.createThumbnail(
-                    imageSrc, imageTrg);
-            }
         }
     };
 
