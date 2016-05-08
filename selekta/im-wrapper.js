@@ -15,6 +15,8 @@ selektaImageMagickWrapper = function () {
     var convert = undefined;
     var identify = undefined;
 
+    var sequence = Promise.resolve();
+
     /***************************************************************/
 
     var createThumbnail = function( imageSrc, imageTrg ) {
@@ -37,11 +39,34 @@ selektaImageMagickWrapper = function () {
             imageDimTrg.width = (Math.round((maxDim / imageDimSrc.height)
                 * imageDimSrc.width));
         }
-        var opts = [imageSrc, "-thumbnail",
-        imageDimTrg.width + "x" + imageDimTrg.height, imageTrg];
-        mkdirp(path.dirname(imageTrg), function() {
-            exec.execFile(convert, opts, function(err, data) {
-                console.log("convert [IN]  " + imageSrc + "[OUT] " + imageTrg);
+        var opts = ([imageSrc, "-thumbnail",
+        imageDimTrg.width + "x" + imageDimTrg.height, imageTrg]);
+        // create new element for job queue
+        (function(){
+            var _imageSrc = imageSrc;
+            var _imageTrg = imageTrg;
+            var _opts = opts;
+            sequence = sequence.then(
+                function(result) {
+                    return runJob(_imageSrc, _imageTrg, _opts);
+                },
+                function(err) {
+                    // handle error later
+                }
+            );
+        })();
+    };
+
+    var runJob = function (imageSrc, imageTrg, opts) {
+        return new Promise(function(resolve, reject) {
+            console.log("[JOB] CON [BEG] :: [IN] "
+                + imageSrc + "[OUT] " + imageTrg);
+            mkdirp(path.dirname(imageTrg), function(){
+                exec.execFile(convert, opts, function() {
+                    console.log("[JOB] CON [END] :: [IN] "
+                        + imageSrc + "[OUT] " + imageTrg);
+                    resolve();
+                });
             });
         });
     };
