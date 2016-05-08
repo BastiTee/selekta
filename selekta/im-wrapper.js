@@ -15,7 +15,8 @@ selektaImageMagickWrapper = function () {
     var convert = undefined;
     var identify = undefined;
 
-    var sequence = Promise.resolve();
+    var jobQueue = Promise.resolve();
+    var imageOrientations = {};
 
     /***************************************************************/
 
@@ -46,32 +47,36 @@ selektaImageMagickWrapper = function () {
             var _imageSrc = imageSrc;
             var _imageTrg = imageTrg;
             var _opts = opts;
-            sequence = sequence.then(
+            jobQueue = jobQueue.then(
                 function(result) {
-                    return runJob(_imageSrc, _imageTrg, _opts);
+                    return newThumbnailCreationJob(
+                        _imageSrc, _imageTrg, _opts);
                 },
                 function(err) {
-                    // handle error later
+                    console.log("ERR!!! " + err);
+                }
+            );
+            jobQueue = jobQueue.then(
+                function(result) {
+                    return newGetOrientationJob(_imageSrc);
+                },
+                function(err) {
+                    console.log("ERR!!! " + err);
                 }
             );
         })();
     };
 
-    var runJob = function (imageSrc, imageTrg, opts) {
-        return new Promise(function(resolve, reject) {
-            console.log("[JOB] CON [BEG] :: [IN] "
-                + imageSrc + "[OUT] " + imageTrg);
-            mkdirp(path.dirname(imageTrg), function(){
-                exec.execFile(convert, opts, function() {
-                    console.log("[JOB] CON [END] :: [IN] "
-                        + imageSrc + "[OUT] " + imageTrg);
-                    resolve();
-                });
-            });
-        });
-    };
-
     var getOrientation = function ( imageSrc ) {
+
+        // check cache
+        console.log(imageOrientations);
+        var cachedOrientation = imageOrientations[imageSrc];
+        if (cachedOrientation !== undefined) {
+            console.log("Returning orientation from cache: "
+                + cachedOrientation);
+            return cachedOrientation
+        }
 
         checkBackend();
         if (checkedForBackend && backendPath == undefined)
@@ -81,7 +86,7 @@ selektaImageMagickWrapper = function () {
         var data = exec.execFileSync(identify, opts);
         var orientation = decoder.write(data).split("'").join("");
         if (orientation == undefined ||orientation === "" )
-            return undefined;
+            return 1;
         else
             return orientation;
     };
@@ -89,7 +94,6 @@ selektaImageMagickWrapper = function () {
     var getDegreesForOrientation = function( orientation ) {
 
         // TODO
-
         return orientation;
     };
 
@@ -102,6 +106,33 @@ selektaImageMagickWrapper = function () {
     };
 
     /***************************************************************/
+
+    function newThumbnailCreationJob (imageSrc, imageTrg, opts) {
+        return new Promise(function(resolve, reject) {
+            console.log("[JOB] THUMBN [BEG] :: [IN] "
+                + imageSrc + "[OUT] " + imageTrg);
+            mkdirp(path.dirname(imageTrg), function(){
+                exec.execFile(convert, opts, function() {
+                    console.log("[JOB] THUMBN [END] :: [IN] "
+                        + imageSrc + "[OUT] " + imageTrg);
+                    resolve();
+                });
+            });
+        });
+    };
+
+    function newGetOrientationJob (imageSrc) {
+        return new Promise(function(resolve, reject) {
+            console.log("[JOB] ORIENT [BEG] :: [IN] " + imageSrc);
+            var or = getOrientation(imageSrc);
+            if (or !== undefined) {
+                imageOrientations[imageSrc] = or;
+            }
+            console.log("[JOB] ORIENT [END] :: [IN] "
+                        + imageSrc + " [ORI] " + or);
+            resolve();
+        });
+    };
 
     function checkBackend () {
         if (!checkedForBackend) {

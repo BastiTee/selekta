@@ -298,9 +298,11 @@ selektaImageManager = function() {
             if (lastImageDivId !== undefined) {
                 $("#"+lastImageDivId).remove();
             };
-            if (currImageOrientation !== undefined) {
-                var degrees = selektaImageMagickWrapper.getDegreesForOrientation(
-                                        currImageOrientation);
+            if (currImageOrientation !== undefined &&
+                currImageOrientation !== 1 ) {
+                var degrees =
+                selektaImageMagickWrapper.getDegreesForOrientation(
+                        currImageOrientation);
                 console.log("rotating image >> ori=" + currImageOrientation
                     + " deg=" + degrees);
             };
