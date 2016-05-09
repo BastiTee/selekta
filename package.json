@@ -1,26 +1,36 @@
 {
-  "name": "selekta",
-  "version": "0.1.0",
-  "author": "Basti Tee",
-  "keywords": [],
-  "style": "selekta/style.css",
-  "main": "selekta/index.js",
-  "scripts": {
-    "start": "electron ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/BastiTee/selekta.git"
-  },
-  "license": "GPL-3.0",
-  "dependencies": {
-    "electron-prebuilt": "^0.36.0",
-    "exif": "^0.6.0",
-    "image-size": "^0.5.0",
-    "imagesloaded": "^4.1.0",
-    "jimp": "^0.2.24",
-    "jquery": "^2.2.3",
-    "mkdirp": "^0.5.1",
-    "walk": "^2.3.9"
-  }
+    "name": "selekta",
+    "version": "0.1.0",
+    "author": "Basti Tee",
+    "keywords": [],
+    "style": "selekta/style.css",
+    "main": "selekta/index.js",
+    "scripts": {
+        "start": "electron .",
+        "postinstall": "install-app-deps",
+        "pack": "build",
+        "dist": "build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/BastiTee/selekta.git"
+    },
+    "license": "GPL-3.0",
+    "dependencies": {
+        "electron-prebuilt": "^0.36.0",
+        "exif": "^0.6.0",
+        "image-size": "^0.5.0",
+        "imagesloaded": "^4.1.0",
+        "jimp": "^0.2.24",
+        "jquery": "^2.2.3",
+        "mkdirp": "^0.5.1",
+        "walk": "^2.3.9"
+    },
+    "build": {
+        "app-bundle-id": "your.id",
+        "app-category-type": "your.app.category.type",
+        "win": {
+            "iconUrl": "(windows-only) https link to icon"
+        }
+    }
 }
