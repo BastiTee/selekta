@@ -1,20 +1,12 @@
 selektaJobProcessor = function () {
     "use strict";
 
-    const backendBase = "selekta/ext";
     const path = require("path");
-    const exec = require('child_process');
-    const os = require("os");
     const fs = require("fs");
     const imsize = require("image-size");
     const mkdirp = require("mkdirp");
-    const StringDecoder = require('string_decoder').StringDecoder;
-    const decoder = new StringDecoder('utf8');
-
-    var checkedForBackend = false;
-    var backendPath = undefined;
-    var convert = undefined;
-    var identify = undefined;
+    const ExifImage = require('exif').ExifImage;
+    const jimp = require("jimp");
 
     var jobQueue = Promise.resolve();
     var imageOrientationCache = {};
@@ -30,13 +22,9 @@ selektaJobProcessor = function () {
                 return;
             console.log("existing thumb w size=" + stat["size"]);
         } catch (err) {
-            console.log(err);
             // on non-existing or 0-byte files just continue..
+            // console.log(err);
         }
-
-        checkBackend();
-        if (checkedForBackend && backendPath == undefined)
-            return;
 
         var imageDimSrc = imsize(imageSrc);
         var imageDimTrg = {};
@@ -52,17 +40,17 @@ selektaJobProcessor = function () {
             imageDimTrg.width = (Math.round((maxDim / imageDimSrc.height)
                 * imageDimSrc.width));
         }
-        var opts = ([imageSrc, "-thumbnail",
-        imageDimTrg.width + "x" + imageDimTrg.height, imageTrg]);
-        // create new element for job queue
+
+        // add to job queue
         (function(){
             var _imageSrc = imageSrc;
             var _imageTrg = imageTrg;
-            var _opts = opts;
+            var _width = imageDimTrg.width;
+            var _height = imageDimTrg.height;
             jobQueue = jobQueue.then(
                 function(result) {
                     return newConvertToThumbnailPromise(
-                        _imageSrc, _imageTrg, _opts);
+                        _imageSrc, _imageTrg, _width, _height);
                 },
                 function(err) {
                     console.log("ERR!!! " + err);
@@ -72,10 +60,6 @@ selektaJobProcessor = function () {
     };
 
     var invokeIdentifyOrientationJob = function( imageSrc ) {
-
-        checkBackend();
-        if (checkedForBackend && backendPath == undefined)
-            return;
 
         (function(){
             var _imageSrc = imageSrc;
@@ -90,27 +74,27 @@ selektaJobProcessor = function () {
         })();
     }
 
-    var getOrientation = function ( imageSrc ) {
+    var getOrientation = function ( imageSrc, cb ) {
+        cb = (typeof cb === "function") ? cb : new function() {};
 
         // check cache
         var cachedOrientation = imageOrientationCache[imageSrc];
         if (cachedOrientation !== undefined) {
-            // console.log("Returning orientation from cache: "
-            // + cachedOrientation);
-            return cachedOrientation
+            console.log("Returning orientation from cache: "
+                + cachedOrientation);
+            cb(cachedOrientation);
+            return;
         }
 
-        checkBackend();
-        if (checkedForBackend && backendPath == undefined)
-            return;
-
-        var opts = ["-format", "'%[EXIF:Orientation]'", imageSrc];
-        var data = exec.execFileSync(identify, opts);
-        var orientation = decoder.write(data).split("'").join("");
-        if (orientation == undefined ||orientation === "" )
-            return 1;
-        else
-            return orientation;
+        var exifImage = new ExifImage({ image : imageSrc },
+            function (error, exifData) {
+                if (error) cb(undefined);
+                if (exifData === undefined ||
+                    exifData.image === undefined ||
+                    exifData.image.Orientation === undefined)
+                    return cb(undefined);
+                cb(exifData.image.Orientation);
+        });
     };
 
     /***************************************************************/
@@ -121,17 +105,22 @@ selektaJobProcessor = function () {
         getOrientation: getOrientation,
     };
 
+
     /***************************************************************/
 
-    function newConvertToThumbnailPromise (imageSrc, imageTrg, opts) {
+    function newConvertToThumbnailPromise (imageSrc, imageTrg,
+        width, height) {
         return new Promise(function(resolve, reject) {
-            // console.log("[JOB] THUMBN [BEG] :: [IN] "
-                // + imageSrc + " [OUT] " + imageTrg);
+
             mkdirp(path.dirname(imageTrg), function(){
-                exec.execFile(convert, opts, function() {
-                    console.log("[JOB] THUMBN [END] :: [IN] "
+                jimp.read(imageSrc, function( err, data) {
+                    if (err) throw err;
+                    data.resize(width, height)
+                    .write(imageTrg, function() {
+                        console.log("[JOB] THUMBN [END] :: [IN] "
                         + imageSrc + " [OUT] " + imageTrg);
-                    resolve();
+                        resolve();
+                    });
                 });
             });
         });
@@ -140,37 +129,20 @@ selektaJobProcessor = function () {
     function newIdentifyOrientationPromise (imageSrc) {
         return new Promise(function(resolve, reject) {
             // console.log("[JOB] ORIENT [BEG] :: [IN] " + imageSrc);
-            var opts = ["-format", "'%[EXIF:Orientation]'", imageSrc];
-            exec.execFile(identify, opts, function(err, data) {
-                var orientation = undefined;
-                if (data !== undefined) {
-                    orientation = decoder.write(data).split("'").join("");
-                }
-                if (orientation == undefined ||orientation === "" ) {
-                    orientation = 1;
-                }
-                console.log("[JOB] ORIENT [END] :: [IN] "
+            var exifImage = new ExifImage({ image : imageSrc },
+                function (error, exifData) {
+                    var orientation = undefined;
+                    if (exifData === undefined ||
+                        exifData.image === undefined ||
+                        exifData.image.Orientation === undefined)
+                        orientation === undefined;
+                    orientation = exifData.image.Orientation;
+                    console.log("[JOB] ORIENT [END] :: [IN] "
                     + imageSrc + " [ORI] " + orientation );
-                imageOrientationCache[imageSrc] = orientation; // add to cache
-                resolve();
+                    imageOrientationCache[imageSrc] = orientation;
+                    resolve();
             });
         });
-    };
-
-    function checkBackend () {
-        if (!checkedForBackend) {
-            console.log("Platform: " + os.platform() + "-" + os.arch());
-            if (os.platform() === "win32" &&
-                (os.arch() === "x64" || os.arch() === "ia32")) {
-                backendPath = path.join(backendBase,
-                    "imagemagick-windows");
-                convert = path.join(backendPath, "convert.exe");
-                identify = path.join(backendPath, "identify.exe");
-            } else {
-                console.log("No resize backend for this platform present.")
-            }
-            checkedForBackend = true;
-        }
     };
 
 }();

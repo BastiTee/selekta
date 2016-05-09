@@ -262,33 +262,32 @@ selektaImageManager = function() {
 
         var imageName = currImagePath.split(/[\\/]/).pop();
         $("#image-name").text(imageName);
+        selektaJobProcessor.getOrientation(
+        currImagePath, function(orientation) {
+            currImageOrientation = orientation;
 
-        currImageOrientation = selektaJobProcessor.getOrientation(
-            currImagePath);
-
-        var currThumbPath = checkForThumbnail(currImagePath);
-        if (currThumbPath === undefined) {
-            console.log("[IMG] " + currImagePath);
-            // if no thumbnail available, then load full image immediately
-            addImageDiv(currImagePath, function() {
-                $("#load-hover").hide();
-            });
-        } else {
-            console.log("[THU] " + currThumbPath);
-            // if thumbnail available, load it before loading full image
-            addImageDiv(currThumbPath, function() {
+            var currThumbPath = checkForThumbnail(currImagePath);
+            if (currThumbPath === undefined) {
                 console.log("[IMG] " + currImagePath);
-                addImageDiv(currImagePath, function() {
+                // if no thumbnail available, then load full image immediately
+                addImageDiv(currImagePath, false, function() {
                     $("#load-hover").hide();
                 });
-            });
-        };
+            } else {
+                console.log("[THU] " + currThumbPath);
+                // if thumbnail available, load it before loading full image
+                addImageDiv(currThumbPath, true, function() {
+                    console.log("[IMG] " + currImagePath);
+                    addImageDiv(currImagePath, false, function() {
+                        $("#load-hover").hide();
+                    });
+                });
+            };
+        });
         return imagePos;
     };
 
-    function addImageDiv(imagePath, cb) {
-
-        var img = selektaImageProcessor.makeThumb(imagePath);
+    function addImageDiv(imagePath, isThumb, cb) {
 
         cb = (typeof cb === "function" ) ? cb : function() {};
         var lastImageDivId = currImageDivId;
@@ -304,7 +303,8 @@ selektaImageManager = function() {
             if (lastImageDivId !== undefined) {
                 $("#"+lastImageDivId).remove();
             };
-            applyOrientation();
+            if (!isThumb)
+                applyOrientation(); // not necessary on thumbs
             $("#" + currImageDivId).css({opacity: "1"});
             cb();
         });
@@ -317,28 +317,28 @@ selektaImageManager = function() {
         var rotate = undefined;
         var flip = undefined;
         switch (currImageOrientation) {
-            case "2":
+            case 2:
                 flip = -1;
                 break;
-            case "3":
+            case 3:
                 rotate=180;
                 break;
-            case "4":
+            case 4:
                 rotate=180;
                 flip=-1;
                 break;
-            case "5":
+            case 5:
                 rotate=90;
                 flip=-1;
                 break;
-            case "6":
+            case 6:
                 rotate=90;
                 break;
-            case "7":
+            case 7:
                 rotate=-90;
                 flip=-1;
                 break;
-            case "8":
+            case 8:
                 rotate=-90;
                 break;
             default:
@@ -346,8 +346,8 @@ selektaImageManager = function() {
         };
         if (rotate === undefined && flip === undefined)
             return;
-        console.log("EXIF_ORI=" + currImageOrientation + " ROT=" + rotate +
-            " FLIP=" + flip);
+        // console.log("EXIF_ORI=" + currImageOrientation + " ROT=" + rotate +
+        //     " FLIP=" + flip);
         var transformation = "";
         if (flip !== undefined)
             transformation = "scaleX("+flip+")";

@@ -20,9 +20,8 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
 *Tasks*
 
- - [ ] Only create a thumbnail when it makes sense, e.g., only images over 5 MB
+ - [ ] Make thumbnail creation smarter, i.e., generate thumbnails where it makes sense (e.g., only images over 5 MB, only next/prev 10 images for current position etc.)
  - [ ] Skip over loading a big image when user used next/prev key to skip the image
- - [ ] Read/write orientation from/to file, so that on startup cache is recreated.
 
 *Bugs*
 
@@ -30,12 +29,10 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
 *Packaging*
 
- - [ ] Create a native container build for windows/mac/linux
+ - [ ] Create a native container build for windows
+ - [ ] Create a native container build for mac
+ - [ ] Create a native container build for linux
  - [ ] Create or find an awesome icon
-
-*Other*
-
- - [ ] Learn more about JavaScript's best practices and design patterns and beautify/refactor the s*t out of the code
 
 *Done*
 
