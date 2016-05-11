@@ -14,7 +14,7 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 ## Startup
 - Install dependencies with `npm install`
 - Start application with `npm start`
-- Start application in development mode with `npm run start -- dev` or `go` on windows
+- Start application in development mode with `npm run start -- dev`
 
 ## To-Dos
 
