@@ -8,8 +8,8 @@ Selekta is yet another image browser. Its only purpose is to quickly skim throug
 
 Selekta is a self-educational project to get the hang of  [JavaScript](http://s2.quickmeme.com/img/c2/c27aa8c34c875f015ed015e075a703ffa6e5f7063186a8573d82931ba4928c76.jpg) and  [Electron](http://electron.atom.io).
 
-![Screenshot 1](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/001_a.png)
-![Screenshot 2](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/001_b.png)
+![Screenshot 1](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/002_a.jpg)
+![Screenshot 2](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/002_b.jpg)
 
 ## Startup
 - Install dependencies with `npm install`
