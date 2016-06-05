@@ -3,10 +3,18 @@ selektaJobProcessor = function () {
 
     const path = require("path");
     const fs = require("fs");
+    const os = require("os");
+    const exec = require('child_process');
     const imsize = require("image-size");
     const mkdirp = require("mkdirp");
     const ExifImage = require('exif').ExifImage;
-    const jimp = require("jimp");
+    const StringDecoder = require('string_decoder').StringDecoder;
+    const decoder = new StringDecoder('utf8');
+
+    var checkedForBackend = false;
+    const backendBase = "selekta/ext";
+    var backendPath = undefined;
+    var convert = undefined;
 
     var jobQueue = Promise.resolve();
     var imageOrientationCache = {};
@@ -25,6 +33,10 @@ selektaJobProcessor = function () {
             // on non-existing or 0-byte files just continue..
             // console.log(err);
         }
+
+        checkBackend();
+        if (checkedForBackend && backendPath == undefined)
+            return;
 
         var imageDimSrc = imsize(imageSrc);
         var imageDimTrg = {};
@@ -111,16 +123,13 @@ selektaJobProcessor = function () {
     function newConvertToThumbnailPromise (imageSrc, imageTrg,
         width, height) {
         return new Promise(function(resolve, reject) {
-
+            var opts = ([imageSrc, "-thumbnail",
+                width + "x" + height, imageTrg]);
             mkdirp(path.dirname(imageTrg), function(){
-                jimp.read(imageSrc, function( err, data) {
-                    if (err) throw err;
-                    data.resize(width, height)
-                    .write(imageTrg, function() {
-                        console.log("[JOB] THUMBN [END] :: [IN] "
+                exec.execFile(convert, opts, function() {
+                    console.log("[JOB] THUMBN [END] :: [IN] "
                         + imageSrc + " [OUT] " + imageTrg);
-                        resolve();
-                    });
+                    resolve();
                 });
             });
         });
@@ -134,9 +143,11 @@ selektaJobProcessor = function () {
                     var orientation = undefined;
                     if (exifData === undefined ||
                         exifData.image === undefined ||
-                        exifData.image.Orientation === undefined)
+                        exifData.image.Orientation === undefined) {
                         orientation === undefined;
-                    orientation = exifData.image.Orientation;
+                    } else {
+                        orientation = exifData.image.Orientation;
+                    }
                     console.log("[JOB] ORIENT [END] :: [IN] "
                     + imageSrc + " [ORI] " + orientation );
                     imageOrientationCache[imageSrc] = orientation;
@@ -144,5 +155,20 @@ selektaJobProcessor = function () {
             });
         });
     };
+
+    function checkBackend () {
+    if (!checkedForBackend) {
+        console.log("Platform: " + os.platform() + "-" + os.arch());
+        if (os.platform() === "win32" &&
+            (os.arch() === "x64" || os.arch() === "ia32")) {
+            backendPath = path.join(backendBase,
+                "imagemagick-windows");
+            convert = path.join(backendPath, "convert.exe");
+        } else {
+            console.log("No resize backend for this platform present.")
+        }
+        checkedForBackend = true;
+    }
+};
 
 }();

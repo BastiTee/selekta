@@ -11,6 +11,10 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 ![Screenshot 1](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/002_a.jpg)
 ![Screenshot 2](https://raw.githubusercontent.com/BastiTee/selekta/master/screenshots/002_b.jpg)
 
+## Limitations
+
+Selekta is platform independent, but the preview-mode for larger images is currently Windows-only. It will be usable nonetheless - only slower.
+
 ## Startup
 - Install dependencies with `npm install`
 - Start application with `npm start`
@@ -22,6 +26,8 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 
  - [ ] Make thumbnail creation smarter, i.e., generate thumbnails where it makes sense (e.g., only images over 5 MB, only next/prev 10 images for current position etc.)
  - [ ] Skip over loading a big image when user used next/prev key to skip the image
+ - [ ] Port selekta thumbnail creation to linux (requires imagemagick build for unix)
+ - [ ] Port selekta thumbnail creation to mac (requires imagemagick build for mac)
 
 *Bugs*
 
@@ -30,8 +36,6 @@ Selekta is a self-educational project to get the hang of  [JavaScript](http://s2
 *Packaging*
 
  - [ ] Create a native container build for windows
- - [ ] Create a native container build for mac
- - [ ] Create a native container build for linux
  - [ ] Create or find an awesome icon
 
 *Done*
